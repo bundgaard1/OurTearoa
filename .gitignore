@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+dist/
+.angular/
+
+# Environment and Secrets
+.env
+*.pem
+
+# IDE / System
+.DS_Store
+.vscode/
+.idea/
