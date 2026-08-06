@@ -3,6 +3,8 @@ INFS803 Cloud Computing 2026
 Exploring New Zealand (Aotearoa) application.
 
 
+
+
 # Requirements
 
 - **Three-Tier Architecture:** Implement distinct client (frontend), backend (REST API), and database/storage tiers on the cloud. The database and storage must be managed cloud services, not local installations inside the server virtual machine.
