@@ -1,9 +1,8 @@
 INFS803 Cloud Computing 2026
 
+Name: Ourtearoa - A Cloud-Based Application for Exploring New Zealand (Aotearoa)
+
 Exploring New Zealand (Aotearoa) application.
-
-
-
 
 # Requirements
 
@@ -14,3 +13,7 @@ Exploring New Zealand (Aotearoa) application.
 - **Git Collaboration:** Maintain an active Git repository with distinct, unrewritten commit histories reflecting each team member's ongoing contributions.
 - **CI/CD Integration:** Set up continuous integration and deployment pipelines to automatically push code updates from your Git repository to your cloud environments.
 - **Comprehensive Documentation:** Deliver a complete PDF report covering project management evidence (work logs, Trello boards, timestamps, meeting minutes), architecture diagrams, cloud setup guides, API specifications, user manuals, and prominent links to the live URLs and source repository.
+
+# Connect to EC2
+
+ssh -i <your-key.pem> ec2-user@<EC2-PUBLIC-IP>
