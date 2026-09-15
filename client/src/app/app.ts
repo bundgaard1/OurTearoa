@@ -2,6 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 
+import { environment } from '../environments/environment';
+
 interface HealthResponse {
   status: string;
   timestamp: string;
@@ -21,7 +23,7 @@ export class App implements OnInit {
   error = signal<string | null>(null);
 
   ngOnInit(): void {
-    this.http.get<HealthResponse>('http://localhost:3000/api/health').subscribe({
+    this.http.get<HealthResponse>(`${environment.apiUrl}/health`).subscribe({
       next: (data) => this.healthData.set(data),
       error: (err) => {
         console.error('Failed to connect to backend', err);

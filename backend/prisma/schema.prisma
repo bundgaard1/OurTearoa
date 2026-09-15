@@ -1,0 +1,26 @@
+// Prisma schema for OurTearoa
+// Start small: the Place model proves the connection wiring.
+// Add more models (users, reviews, itineraries...) as features land.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Place {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(200)
+  region      String   @db.VarChar(100)
+  description String?
+  imageUrl    String?
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("places")
+}

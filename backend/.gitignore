@@ -1,0 +1,6 @@
+# Dependencies
+node_modules/
+dist/
+
+# Prisma-generated client
+/generated/
