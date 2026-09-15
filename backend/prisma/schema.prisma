@@ -1,6 +1,5 @@
 // Prisma schema for OurTearoa
-// Start small: the Place model proves the connection wiring.
-// Add more models (users, reviews, itineraries...) as features land.
+// Models: Place, User, Review, Favorite, ItineraryEntry
 
 generator client {
   provider = "prisma-client"
@@ -19,8 +18,74 @@ model Place {
   imageUrl    String?
   latitude    Float?
   longitude   Float?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  reviews          Review[]
+  favorites        Favorite[]
+  itineraryEntries ItineraryEntry[]
 
   @@map("places")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String   @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  reviews          Review[]
+  favorites        Favorite[]
+  itineraryEntries ItineraryEntry[]
+
+  @@map("users")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  placeId   String   @map("place_id")
+  userId    String   @map("user_id")
+  rating    Int      @db.SmallInt
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([placeId])
+  @@map("reviews")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  placeId   String   @map("place_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId])
+  @@index([placeId])
+  @@map("favorites")
+}
+
+model ItineraryEntry {
+  id        String   @id @default(uuid())
+  placeId   String   @map("place_id")
+  userId    String   @map("user_id")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  place Place @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startDate])
+  @@map("itinerary_entries")
 }
