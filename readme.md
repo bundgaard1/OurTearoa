@@ -17,3 +17,43 @@ Exploring New Zealand (Aotearoa) application.
 # Connect to EC2
 
 ssh -i <your-key.pem> ec2-user@<EC2-PUBLIC-IP>
+
+# Local Development
+
+The project ships with a Docker Compose Postgres so you can develop against a
+local database instead of whitelisting your IP against the AWS RDS security
+group.
+
+**Prerequisites:** Docker with Docker Compose.
+
+```bash
+# 1. Start the local database (Postgres on localhost:5432)
+npm run db:up
+
+# 2. Apply the schema (creates the first migration on a fresh DB)
+npm run db:migrate
+
+# 3. Seed the sample data (Places, demo user, reviews)
+npm run db:seed
+
+# 4. Start the backend API
+npm --prefix backend run dev
+```
+
+Useful commands:
+
+| Command           | Description                              |
+| :---------------- | :--------------------------------------- |
+| `npm run db:up`   | Start the local Postgres container       |
+| `npm run db:down` | Stop the local Postgres container        |
+| `npm run db:logs` | Follow container logs                    |
+| `npm run db:studio` | Open Prisma Studio against the local DB |
+| `npm run db:migrate` | Run `prisma migrate dev`             |
+| `npm run db:seed` | Seed sample data (Places, user, reviews) |
+
+The local DB connection is configured in `backend/.env`
+(`postgresql://ourtearoa:ourtearoa_dev@localhost:5432/ourtearoa?schema=public`).
+To point at the AWS RDS database instead, swap in the RDS `DATABASE_URL`
+commented out in that file.
+
+**Demo seed user:** `demo@ourtearoa.dev`
