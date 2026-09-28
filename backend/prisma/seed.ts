@@ -50,7 +50,7 @@ const places = [
     name: 'Tongariro Alpine Crossing',
     region: 'Waikato',
     description:
-      'One of the world’s best one-day hikes, crossing volcanic terrain with emerald lakes and Mount Ngauruhoe.',
+      'One of the worlds best one-day hikes, crossing volcanic terrain with emerald lakes and Mount Ngauruhoe.',
     imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
     latitude: -39.1572,
     longitude: 175.6317,
