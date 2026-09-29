@@ -6,6 +6,7 @@ dist/
 # Environment and Secrets
 .env
 *.pem
+!global-bundle.pem
 
 # IDE / System
 .DS_Store
