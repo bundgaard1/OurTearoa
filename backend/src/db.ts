@@ -3,13 +3,25 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 import { PrismaClient } from '../generated/prisma/client.js';
 
-export const prisma = new PrismaClient({
-  adapter: new PrismaPg({
-    connectionString: databaseUrl(),
-  }),
-});
+let client: PrismaClient | undefined;
 
-export type Db = typeof prisma;
+/**
+ * Returns the shared Prisma client, constructing it on first use.
+ *
+ * Construction is deferred so that a missing DATABASE_URL surfaces as a
+ * recoverable health-check failure rather than crashing the process at
+ * import time. Every caller must handle the throw.
+ */
+export function getPrisma(): PrismaClient {
+  client ??= new PrismaClient({
+    adapter: new PrismaPg({
+      connectionString: databaseUrl(),
+    }),
+  });
+  return client;
+}
+
+export type Db = PrismaClient;
 
 /**
  * Resolves the Postgres connection string.
