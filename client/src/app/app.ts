@@ -7,6 +7,9 @@ import { environment } from '../environments/environment';
 interface HealthResponse {
   status: string;
   timestamp: string;
+  database: string;
+  latencyMs: number | null;
+  reason: string | null;
 }
 
 @Component({

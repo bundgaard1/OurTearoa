@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://<YOUR-EC2-PUBLIC-IP-OR-DOMAIN>/api'
+  apiUrl: 'http://54.252.56.209/api'
 };

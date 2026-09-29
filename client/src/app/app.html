@@ -1,10 +1,15 @@
 <main style="font-family: sans-serif; max-width: 600px; margin: 3rem auto; padding: 1.5rem; border: 1px solid #ccc; border-radius: 8px;">
   <h1>OurAotearoa — Cloud Healthcheck</h1>
 
-  @if (healthData()) {
+  @if (healthData(); as health) {
     <div style="background-color: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-      <p><strong>Status:</strong> {{ healthData()?.status }}</p>
-      <p><strong>Backend Timestamp:</strong> {{ healthData()?.timestamp }}</p>
+      <p><strong>Status:</strong> {{ health.status }}</p>
+      <p><strong>Database:</strong> {{ health.database }}</p>
+      <p><strong>Round-trip:</strong> {{ health.latencyMs }} ms</p>
+      <p><strong>Backend Timestamp:</strong> {{ health.timestamp }}</p>
+      @if (health.reason) {
+        <p><strong>Reason:</strong> {{ health.reason }}</p>
+      }
     </div>
   } @else if (error()) {
     <div style="background-color: #ffebee; color: #c62828; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
