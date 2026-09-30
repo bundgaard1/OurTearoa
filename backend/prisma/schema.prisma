@@ -15,9 +15,10 @@ model Place {
   name        String   @db.VarChar(200)
   region      String   @db.VarChar(100)
   description String?
-  imageUrl    String?
   latitude    Float?
   longitude   Float?
+  type        String? 
+
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -33,6 +34,7 @@ model User {
   email     String   @unique
   password  String
   name      String   @db.VarChar(100)
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -49,6 +51,7 @@ model Review {
   userId    String   @map("user_id")
   rating    Int      @db.SmallInt
   comment   String?
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -80,6 +83,7 @@ model ItineraryEntry {
   startDate DateTime @map("start_date")
   endDate   DateTime @map("end_date")
   note      String?
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
