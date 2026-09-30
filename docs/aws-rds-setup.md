@@ -132,7 +132,15 @@ When the check fails the endpoint returns **HTTP 503** with `status: "DOWN"`. Th
 
 ## ⚠️ Do not seed against RDS
 
-`npm run db:seed` runs `prisma/seed.ts`, which calls `deleteMany()` on all five tables before inserting. Because `backend/.env` points at the live RDS instance, running it **will wipe the cloud database**.
+`npm run db:seed` runs `prisma/seed.ts`, which calls `deleteMany()` on all five tables before inserting.
+
+`backend/.env` points at the **local** Docker Postgres by default, so `npm run db:seed` is safe as written. It only becomes destructive once the RDS `DATABASE_URL` is uncommented in that file — from then on running it **will wipe the cloud database**. Confirm which host `prisma migrate status` names before running anything that writes:
+
+```bash
+npx prisma migrate status   # run from backend/; must say localhost:5432
+```
+
+To put it back afterwards, re-comment the RDS line and re-enable the local one.
 
 Use the local Docker Postgres for anything that writes:
 

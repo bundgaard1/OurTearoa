@@ -30,11 +30,19 @@ its `npm test` is a stub that exits 1. Only `client` has real tests (4 passing).
 
 **`GET /api/health` must return 200 from any network, and survive an EC2 reboot.**
 
-It runs a real `SELECT 1` against RDS via Prisma (`backend/src/controllers/health.controller.ts`):
+It runs a real `SELECT 1` via Prisma (`backend/src/controllers/health.controller.ts`):
 
 ```json
 { "status": "UP", "timestamp": "...", "database": "UP", "latencyMs": 34.9, "reason": null }
 ```
+
+**Which database it checks depends on where it runs.** On EC2 that is RDS, because
+`DATABASE_URL` is supplied by the process environment (systemd/PM2) and there is no
+`.env` on the box. Run locally it checks the Docker Postgres from `backend/.env`,
+so a sub-millisecond `latencyMs` locally is expected and says nothing about RDS
+reachability. The `timeout` vs `unreachable` split below was diagnosed by running the
+health check against RDS directly — to repeat that, uncomment the RDS `DATABASE_URL`
+in `backend/.env`, start from `backend/`, then re-comment it.
 
 `503` + `"status": "DOWN"` on failure. The `reason` field is the diagnostic:
 
@@ -104,10 +112,15 @@ reboot survival testable.
 
 ## Traps
 
-- **`npm run db:seed` will wipe live RDS.** `prisma/seed.ts` calls `deleteMany()` on all
-  five tables. Use the local Docker Postgres for anything that writes.
-- **`npm run db:migrate` is a production write** to whatever `DATABASE_URL` points at.
-  `db:deploy` is the safe form.
+- **`db:migrate` and `db:seed` are local-only by default.** `backend/.env` ships the Docker
+  Postgres URL, and that one file drives both the Prisma CLI *and* the running API, so the
+  two can never drift. The RDS URL sits commented out directly beneath it. Uncomment that
+  line and `prisma/seed.ts` calls `deleteMany()` on all five tables — which **will wipe the
+  cloud database**, since it is live and reachable from a whitelisted laptop. Check
+  `npx prisma migrate status` (from `backend/`) names `localhost` before running any write.
+- **`prisma migrate dev` writes, and creates a shadow database.** It targets whatever
+  `DATABASE_URL` names. `db:deploy` (`migrate deploy`) is the non-interactive form, and is
+  what CI runs on EC2 against RDS.
 - **Two runtime files are gitignored but required**: `global-bundle.pem`
   (root `.gitignore` `*.pem`) and `backend/generated/prisma/` (`backend/.gitignore`
   `/generated/`). A fresh clone cannot start without both. Decide deliberately whether
