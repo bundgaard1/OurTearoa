@@ -2,8 +2,7 @@
 
 ## 1. AWS Provisioning
 - **Instance Type:** `t3.micro`
-- **OS:** Ubuntu 24.04 LTS
-- **Security Rules:** Ports 22, 80, 443
+- **OS:** Amazon Linux 2023
 
 ![EC2 Instance](screenshots/2-01-ec2-running.png)
 ![RDS and EC2 security](screenshots/3-rds-ec2-security.png)
@@ -22,7 +21,7 @@
 ![Swap Memory](screenshots/2-04-swap-memory.png)
 
 ## 4. Reverse Proxy & Verification
-- Nginx proxying port 80 -> 127.0.0.1:3000.
+- Nginx proxying port 443 -> 127.0.0.1:3000.
 
 ![API Online](screenshots/2-05-API-online.png)
 ![API Connection](screenshots/2-06-api-connection.png)

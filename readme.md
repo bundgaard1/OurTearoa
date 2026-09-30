@@ -57,3 +57,55 @@ To point at the AWS RDS database instead, swap in the RDS `DATABASE_URL`
 commented out in that file.
 
 **Demo seed user:** `demo@ourtearoa.dev`
+
+# Building the Client
+
+The client is a standalone Angular 22 app in `client/`. Install its dependencies
+once, then use `ng` for both the dev server and the production compile.
+
+```bash
+cd client
+npm ci
+```
+
+## Development server
+
+```bash
+npm start          # ng serve, http://localhost:4200
+```
+
+This serves on port 4200 and rebuilds on save. It calls the API at
+`http://localhost:3000/api`, so **the backend must be running** or every request
+will fail — start it with `npm --prefix backend run dev` (see above).
+
+## Production compile
+
+```bash
+npm run build      # ng build, defaults to the production configuration
+```
+
+The compiled app is written to `client/dist/client/browser/`. That directory is
+what CI rsyncs to the Nginx web root (`/var/www/ourtearoa`), so it is the only
+thing that needs deploying — there is no server-side rendering or runtime
+config step.
+
+| Command        | Description                                        |
+| :------------- | :------------------------------------------------- |
+| `npm start`    | Dev server on :4200, rebuilds on save              |
+| `npm run build` | Production compile to `client/dist/client/browser/` |
+| `npm run watch` | Development build that rebuilds on save (no server) |
+| `npm test`     | Run the Vitest unit tests                          |
+
+## API URL is baked in at compile time
+
+`client/src/environments/` holds two files and the build picks one:
+
+| Configuration  | File                              | `apiUrl`                    |
+| :------------- | :-------------------------------- | :-------------------------- |
+| `development`  | `environment.development.ts`      | `http://localhost:3000/api` |
+| `production`   | `environment.ts`                  | `http://54.252.56.209/api`  |
+
+There is no runtime configuration and no dev-server proxy — the URL is compiled
+into the JavaScript bundle. So the production build has to be **recompiled and
+redeployed** whenever the API host changes, and you should not expect editing
+these files alone to affect an already-deployed bundle.
