@@ -39,12 +39,14 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       # 3. Rsync Built Frontend Directly to /var/www/ourtearoa
+      # 3. Rsync Built Frontend Directly to /var/www/ourtearoa
       - name: Deploy Frontend to Nginx Web Root
         run: |
-          rsync -avz --delete \
+          CLEAN_HOST=\((echo -n "\){{ secrets.EC2_HOST }}" | tr -d '[:space:]')
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=accept-new" \
             client/dist/client/browser/ \
-            \({{ secrets.EC2_USER }}@\){{ secrets.EC2_HOST }}:/var/www/ourtearoa/
-
+            \({{ secrets.EC2_USER }}@\)CLEAN_HOST:/var/www/ourtearoa/
+          
       # 4. Update Backend, Run Migrations, and Reload PM2
       - name: Deploy Backend & Restart Services
         run: |
