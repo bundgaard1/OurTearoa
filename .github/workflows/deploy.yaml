@@ -58,7 +58,7 @@ jobs:
             git pull origin main
 
             # Update backend dependencies & DB schema
-            cd server
+            cd backend
             npm ci --omit=dev
             npx prisma migrate deploy
 
