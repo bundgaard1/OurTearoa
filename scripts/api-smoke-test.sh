@@ -3,7 +3,7 @@
 # Usage: scripts/api-smoke-test.sh [BASE_URL]
 #   BASE_URL defaults to http://localhost:3000/api
 #   PLACE_ID=<uuid> can be set when GET /places is not available yet.
-# Requires: curl, node. Creates a throwaway user (there is no delete-user endpoint).
+# Requires: curl, node. Creates a throwaway user and deletes it again at the end.
 
 BASE="${1:-http://localhost:3000/api}"
 BASE="${BASE%/}"
@@ -113,6 +113,9 @@ else
   check "PUT  /reviews/:id" 200
   req DELETE "/reviews/$REVIEW_ID" "$TOKEN";       check "DELETE /reviews/:id" 204
 fi
+
+req DELETE /users/me "$TOKEN";                     check "DELETE /users/me (cleanup)" 204
+req GET /users/me "$TOKEN";                        check "GET  /users/me (after delete)" 404
 
 rm -f /tmp/smoke_body.$$
 echo
