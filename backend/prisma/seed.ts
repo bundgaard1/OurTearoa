@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaClient, Prisma } from '../generated/prisma/client.js';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
@@ -15,7 +15,6 @@ const places = [
     region: 'Fiordland',
     description:
       'A breathtaking fiord in Fiordland National Park, carved by glaciers and surrounded by towering cliffs and waterfalls.',
-    imageUrl: 'https://images.unsplash.com/photo-1507699622108-4be3abd695ad',
     latitude: -44.6725,
     longitude: 167.9246,
   },
@@ -24,7 +23,6 @@ const places = [
     region: 'Waikato',
     description:
       'The famous movie-set village from The Lord of the Rings, set on a working sheep farm near Matamata.',
-    imageUrl: 'https://images.unsplash.com/photo-1483932423825-0cc2b6932941',
     latitude: -37.872,
     longitude: 175.6833,
   },
@@ -33,7 +31,6 @@ const places = [
     region: 'Bay of Plenty',
     description:
       'Geysers, bubbling mud pools and steaming hotspots showcase New Zealand’s powerful volcanic activity.',
-    imageUrl: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2',
     latitude: -38.1368,
     longitude: 176.2497,
   },
@@ -42,7 +39,6 @@ const places = [
     region: 'Otago',
     description:
       'The adventure capital of New Zealand on the shores of Lake Wakatipu, ringed by the Southern Alps.',
-    imageUrl: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9',
     latitude: -45.0312,
     longitude: 168.6626,
   },
@@ -51,7 +47,6 @@ const places = [
     region: 'Waikato',
     description:
       'One of the worlds best one-day hikes, crossing volcanic terrain with emerald lakes and Mount Ngauruhoe.',
-    imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
     latitude: -39.1572,
     longitude: 175.6317,
   },
@@ -60,7 +55,6 @@ const places = [
     region: 'Tasman',
     description:
       'Golden-sand beaches, native forest and clear turquoise water, best explored by kayak or coastal track.',
-    imageUrl: 'https://images.unsplash.com/photo-1500534623283-312aade485b7',
     latitude: -40.9667,
     longitude: 173.05,
   },
@@ -69,7 +63,6 @@ const places = [
     region: 'Northland',
     description:
       'The birthplace of New Zealand as a nation, where the Treaty of Waitangi was signed in 1840.',
-    imageUrl: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9',
     latitude: -35.2682,
     longitude: 174.0807,
   },
@@ -78,11 +71,10 @@ const places = [
     region: 'West Coast',
     description:
       'A dramatic glacier descending into temperate rainforest in Westland Tai Poutini National Park.',
-    imageUrl: 'https://images.unsplash.com/photo-1483721310020-03333e577078',
     latitude: -43.4649,
     longitude: 170.012,
   },
-];
+] satisfies Prisma.PlaceCreateManyInput[];
 
 async function main() {
   console.log('Resetting and seeding OurTearoa local database...');
