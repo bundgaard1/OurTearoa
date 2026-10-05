@@ -15,6 +15,7 @@ const places = [
     region: 'Fiordland',
     description:
       'A breathtaking fiord in Fiordland National Park, carved by glaciers and surrounded by towering cliffs and waterfalls.',
+    type: 'Fiord',
     latitude: -44.6725,
     longitude: 167.9246,
   },
@@ -23,6 +24,7 @@ const places = [
     region: 'Waikato',
     description:
       'The famous movie-set village from The Lord of the Rings, set on a working sheep farm near Matamata.',
+    type: 'Attraction',
     latitude: -37.872,
     longitude: 175.6833,
   },
@@ -31,6 +33,7 @@ const places = [
     region: 'Bay of Plenty',
     description:
       'Geysers, bubbling mud pools and steaming hotspots showcase New Zealand’s powerful volcanic activity.',
+    type: 'Geothermal',
     latitude: -38.1368,
     longitude: 176.2497,
   },
@@ -39,6 +42,7 @@ const places = [
     region: 'Otago',
     description:
       'The adventure capital of New Zealand on the shores of Lake Wakatipu, ringed by the Southern Alps.',
+    type: 'Adventure',
     latitude: -45.0312,
     longitude: 168.6626,
   },
@@ -47,6 +51,7 @@ const places = [
     region: 'Waikato',
     description:
       'One of the worlds best one-day hikes, crossing volcanic terrain with emerald lakes and Mount Ngauruhoe.',
+    type: 'Hiking',
     latitude: -39.1572,
     longitude: 175.6317,
   },
@@ -55,6 +60,7 @@ const places = [
     region: 'Tasman',
     description:
       'Golden-sand beaches, native forest and clear turquoise water, best explored by kayak or coastal track.',
+    type: 'National Park',
     latitude: -40.9667,
     longitude: 173.05,
   },
@@ -63,6 +69,7 @@ const places = [
     region: 'Northland',
     description:
       'The birthplace of New Zealand as a nation, where the Treaty of Waitangi was signed in 1840.',
+    type: 'Historic Site',
     latitude: -35.2682,
     longitude: 174.0807,
   },
@@ -71,6 +78,7 @@ const places = [
     region: 'West Coast',
     description:
       'A dramatic glacier descending into temperate rainforest in Westland Tai Poutini National Park.',
+    type: 'Glacier',
     latitude: -43.4649,
     longitude: 170.012,
   },
