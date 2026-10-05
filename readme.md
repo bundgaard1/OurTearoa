@@ -16,7 +16,29 @@ Exploring New Zealand (Aotearoa) application.
 
 # Connect to EC2
 
+```
 ssh -i <your-key.pem> ec2-user@<EC2-PUBLIC-IP>
+```
+
+# Install dependencies
+
+This project is a monorepo containing distinct `backend/` and `client/` workspaces. Dependencies must be installed in both project subdirectories rather than the root directory.
+
+Prerequisites:
+
+- Node.js 26+
+- Docker with Docker Compose
+
+Run the following commands from the repository root:
+
+```Bash
+# 1. Install backend dependencies and generate the Prisma client
+npm --prefix backend ci
+npm --prefix backend run db:generate
+
+# 2. Install client (Angular) dependencies
+npm --prefix client ci
+```
 
 # Local Development
 
