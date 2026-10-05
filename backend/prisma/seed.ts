@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaClient, Prisma } from '../generated/prisma/client.js';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
@@ -82,7 +82,7 @@ const places = [
     latitude: -43.4649,
     longitude: 170.012,
   },
-];
+] satisfies Prisma.PlaceCreateManyInput[];
 
 async function main() {
   console.log('Resetting and seeding OurTearoa local database...');
