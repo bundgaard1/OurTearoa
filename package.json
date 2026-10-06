@@ -9,6 +9,7 @@
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f db",
     "db:migrate": "npm --prefix backend run db:migrate",
+    "db:deploy": "npm --prefix backend run db:deploy",
     "db:seed": "npm --prefix backend run db:seed",
     "db:studio": "npm --prefix backend run db:studio"
   },

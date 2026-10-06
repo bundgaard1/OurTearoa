@@ -69,6 +69,7 @@ Useful commands:
 | `npm run db:logs` | Follow container logs                    |
 | `npm run db:studio` | Open Prisma Studio against the local DB |
 | `npm run db:migrate` | Run `prisma migrate dev`             |
+| `npm run db:deploy` | Run `prisma migrate deploy` to apply migrations to the local DB |
 | `npm run db:seed` | Seed sample data (Places, user, reviews) |
 
 The local DB connection is configured in `backend/.env`
