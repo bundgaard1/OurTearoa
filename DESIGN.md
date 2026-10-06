@@ -220,6 +220,7 @@ Base URL: `https://ourtearoa.duckdns.org/api` (local: `http://localhost:3000/api
 | POST | `/auth/login` | no | 200 | returns `token` and `user`; 401 on bad credentials |
 | GET | `/users/me` | yes | 200 | own profile including email |
 | GET | `/users/:id` | yes | 200 | `id`, `name`, `createdAt` only |
+| DELETE | `/users/me` | yes | 204 | deletes own account and, via cascade, its reviews, favorites and itinerary |
 | GET | `/favorites` | yes | 200 | own favorites with place |
 | POST | `/favorites` | yes | 201 | `placeId`; 409 if already a favorite |
 | DELETE | `/favorites/:id` | yes | 204 | own favorites only |
