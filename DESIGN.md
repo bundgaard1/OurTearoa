@@ -209,7 +209,37 @@ settings are wrong.
 All endpoints are under `/api` and speak JSON. Responses are `200`/`201` on success
 and a JSON `{ "error": "..." }` body on failure.
 
-There will be endpoints for all the accessibles resources
+Base URL: `https://ourtearoa.duckdns.org/api` (local: `http://localhost:3000/api`).
+"Auth" means an `Authorization: Bearer <JWT>` header from `POST /auth/login` or
+`POST /auth/register`. Another user's resource returns `404`, not `403`.
+
+| Method | Path | Auth | Success | Notes |
+|---|---|---|---|---|
+| GET | `/health` | no | 200 | API and database status |
+| POST | `/auth/register` | no | 201 | `email`, `name`, `password` (min 8); 409 if email exists |
+| POST | `/auth/login` | no | 200 | returns `token` and `user`; 401 on bad credentials |
+| GET | `/users/me` | yes | 200 | own profile including email |
+| GET | `/users/:id` | yes | 200 | `id`, `name`, `createdAt` only |
+| GET | `/favorites` | yes | 200 | own favorites with place |
+| POST | `/favorites` | yes | 201 | `placeId`; 409 if already a favorite |
+| DELETE | `/favorites/:id` | yes | 204 | own favorites only |
+| GET | `/itinerary` | yes | 200 | own entries ordered by start date |
+| POST | `/itinerary` | yes | 201 | `placeId`, `startDate`, `endDate`, `note?`; 400 if end before start |
+| PUT | `/itinerary/:id` | yes | 200 | partial update |
+| DELETE | `/itinerary/:id` | yes | 204 | own entries only |
+| GET | `/places/:id/reviews` | no | 200 | reviews with author name |
+| GET | `/reviews/:id` | no | 200 | |
+| POST | `/reviews` | yes | 201 | `placeId`, `rating` (1-5), `comment?` |
+| PUT | `/reviews/:id` | yes | 200 | own reviews only |
+| DELETE | `/reviews/:id` | yes | 204 | own reviews only |
+| GET | `/places` | no | 200 | in progress (issue #35) |
+| GET | `/places/:id` | no | 200 | in progress (issue #35) |
+| POST | `/places` | yes | 201 | in progress (issue #35) |
+| PUT | `/places/:id` | yes | 200 | in progress (issue #35) |
+| DELETE | `/places/:id` | yes | 204 | in progress (issue #35) |
+
+`scripts/api-smoke-test.sh [BASE_URL]` calls these endpoints and checks the status
+codes, so they can be exercised without the client.
 
 ---
 
