@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
+import bcrypt from 'bcryptjs';
 
 import { PrismaClient, Prisma } from '../generated/prisma/client.js';
 
@@ -96,7 +97,7 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       email: 'demo@ourtearoa.dev',
-      password: 'demo-password',
+      password: await bcrypt.hash('demo-password', 10),
       name: 'Demo Explorer',
     },
   });
@@ -105,7 +106,7 @@ async function main() {
     await prisma.place.create({ data: place });
   }
 
-  const firstPlaces = await prisma.place.findMany({ take: 5 });
+  const firstPlaces = await prisma.place.findMany({ take: 5, orderBy: {name: 'asc'}});
 
   await prisma.review.create({
     data: {

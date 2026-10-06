@@ -6,11 +6,8 @@
 
 **Project:** OurTearoa — a cloud-based web application for exploring New Zealand (Aotearoa).
 
-**Brief:** Design, build and deploy a three-tier cloud application. The client, API and
-database must each run on managed cloud services (no locally-installed database on the
-server VM), the tiers must communicate only through decoupled RESTful APIs, and the
-whole system must be deployed publicly and kept live for the duration of the
-evaluation period.
+**Brief:** Design, build and deploy a three-tier cloud application. The client, API and database must each run on managed cloud services (no locally-installed database on the server VM), the tiers must communicate only through decoupled RESTful APIs, and the whole system must be deployed publicly and kept live for the duration of the evaluation period.
+
 
 **Live deployment:**
 
@@ -50,15 +47,14 @@ document traces back to one of the stories below.
 | US-12 | As a registered user, I want to view my itinerary ordered by date so that I can plan the sequence of my trip. | [ ] |
 | US-13 | As a registered user, I want to edit or remove itinerary entries so that my plan can change as my trip does. | [ ] |
 
-### 2.3 As a contributor
+### 2.3 As a contributor (This is a later-stage feature.)
 
 | ID | User story | Acceptance criteria |
 | :--- | :--- | :--- |
 | US-14 | As a contributor, I want to add a new place with its details and image so that the catalogue grows beyond the seed data. | [ ] |
 | US-15 | As a contributor, I want to edit or remove a place I have added so that catalogue data stays accurate. | [ ] |
-| US-16 | As a contributor, I want to upload a place image to cloud storage so that the catalogue has imagery without bloating the repository. | [ ] |
 
-### 2.4 As an evaluator / operations user
+### 2.4 As an evaluator / operations user 
 
 | ID | User story | Acceptance criteria |
 | :--- | :--- | :--- |
@@ -189,7 +185,7 @@ settings are wrong.
 | # | Screen | Purpose | Route |
 | :--- | :--- | :--- | :--- |
 | 1 | Place list / catalogue | Browse and filter all places | [ ] |
-| 2 | Place detail | Full place information, map, reviews | [ ] |
+| 2 | Place detail | Full place information, map, reviews (opens on the side and fills half the browser window) | [ ] |
 | 3 | Login | Authenticate an existing user | [ ] |
 | 4 | Register | Create a new account | [ ] |
 | 5 | Favourites | The user's saved shortlist | [ ] |
@@ -201,8 +197,8 @@ settings are wrong.
 
 ### 4.2 Navigation and user flows
 
-> _Placeholder — describe the primary flow (browse → detail → log in → favourite →
-> plan) and the authentication guard behaviour, with a flow diagram._
+
+
 
 ### 4.3 API endpoints
 
