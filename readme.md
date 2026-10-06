@@ -42,9 +42,7 @@ npm --prefix client ci
 
 # Local Development
 
-The project ships with a Docker Compose Postgres so you can develop against a
-local database instead of whitelisting your IP against the AWS RDS security
-group.
+The project ships with a Docker Compose Postgres container so you can develop against a local database without needing access to AWS RDS.
 
 **Prerequisites:** Docker with Docker Compose.
 
@@ -52,13 +50,13 @@ group.
 # 1. Start the local database (Postgres on localhost:5432)
 npm run db:up
 
-# 2. Apply the schema (creates the first migration on a fresh DB)
-npm run db:migrate
+# 2. Apply existing committed migrations to the local database
+npm run db:deploy
 
-# 3. Seed the sample data (Places, demo user, reviews)
+# 3. Seed sample data (Places, demo user, reviews)
 npm run db:seed
 
-# 4. Start the backend API
+# 4. Start the backend API (http://localhost:3000)
 npm --prefix backend run dev
 ```
 
@@ -93,6 +91,7 @@ npm ci
 ## Development server
 
 ```bash
+
 npm start          # ng serve, http://localhost:4200
 ```
 
@@ -118,14 +117,15 @@ config step.
 | `npm run watch` | Development build that rebuilds on save (no server) |
 | `npm test`     | Run the Vitest unit tests                          |
 
+
 ## API URL is baked in at compile time
 
 `client/src/environments/` holds two files and the build picks one:
 
-| Configuration  | File                              | `apiUrl`                    |
-| :------------- | :-------------------------------- | :-------------------------- |
-| `development`  | `environment.development.ts`      | `http://localhost:3000/api` |
-| `production`   | `environment.ts`                  | `http://54.252.56.209/api`  |
+| Configuration | File | `apiUrl` |
+| :--- | :--- | :--- |
+| `development` | `environment.development.ts` | `http://localhost:3000/api` |
+| `production` | `environment.ts` | `https://ourtearoa.duckdns.org/api` |
 
 There is no runtime configuration and no dev-server proxy — the URL is compiled
 into the JavaScript bundle. So the production build has to be **recompiled and
