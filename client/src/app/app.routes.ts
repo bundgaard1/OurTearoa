@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { authGuard } from './core/auth/auth.guard';
 import { FavoritesPage } from './pages/favorites';
 import { ItineraryPage } from './pages/itinerary';
 import { LoginPage } from './pages/login';
@@ -14,8 +15,8 @@ export const routes: Routes = [
   { path: 'places', component: PlacesPage, children: [{ path: ':id', component: PlaceDetailPage }] },
   { path: 'login', component: LoginPage },
   { path: 'register', component: RegisterPage },
-  { path: 'favorites', component: FavoritesPage },
-  { path: 'itinerary', component: ItineraryPage },
-  { path: 'profile', component: ProfilePage },
+  { path: 'favorites', canActivate: [authGuard], component: FavoritesPage },
+  { path: 'itinerary', canActivate: [authGuard], component: ItineraryPage },
+  { path: 'profile', canActivate: [authGuard], component: ProfilePage },
   { path: '**', component: NotFoundPage },
 ];
