@@ -80,6 +80,16 @@ else
   if [ "$PLACES_READY" = "1" ]; then
     req GET "/places/$PLACE_ID";                   check "GET  /places/:id" 200
     req POST /places "" '{}';                      check "POST /places (no token)" 401
+    req GET "/places?q=zzzz-no-match";             check "GET  /places?q=" 200
+    req GET "/places/does-not-exist";              check "GET  /places/:id (unknown)" 404
+    req POST /places "$TOKEN" '{}';                check "POST /places (invalid)" 400
+    req POST /places "$TOKEN" '{"name":"Smoke Place","region":"Smoke","type":"test","latitude":-41.3,"longitude":174.8}'
+    check "POST /places" 201
+    NEW_PLACE_ID=$(echo "$BODY_OUT" | field 'd.id')
+    req PUT "/places/$NEW_PLACE_ID" "$TOKEN" '{"description":"updated"}'
+    check "PUT  /places/:id" 200
+    req DELETE "/places/$NEW_PLACE_ID" "$TOKEN";   check "DELETE /places/:id" 204
+    req DELETE "/places/$NEW_PLACE_ID" "$TOKEN";   check "DELETE /places/:id (again)" 404
   fi
 
   req GET /favorites;                              check "GET  /favorites (no token)" 401
