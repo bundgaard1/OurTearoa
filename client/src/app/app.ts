@@ -1,37 +1,20 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
-import { environment } from '../environments/environment';
-
-interface HealthResponse {
-  status: string;
-  timestamp: string;
-  database: string;
-  latencyMs: number | null;
-  reason: string | null;
-}
+import { AuthStore } from './core/auth/auth.store';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './app.html',  // <--- Must match your file name 'app.html'
-  styleUrl: './app.scss'      // <--- Must match your file name 'app.scss' (if using one)
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
-export class App implements OnInit {
-  private http = inject(HttpClient);
-  
-  healthData = signal<HealthResponse | null>(null);
-  error = signal<string | null>(null);
+export class App {
+  protected readonly auth = inject(AuthStore);
+  private readonly router = inject(Router);
 
-  ngOnInit(): void {
-    this.http.get<HealthResponse>(`${environment.apiUrl}/health`).subscribe({
-      next: (data) => this.healthData.set(data),
-      error: (err) => {
-        console.error('Failed to connect to backend', err);
-        this.error.set('Could not reach Express server');
-      }
-    });
+  logout(): void {
+    this.auth.clear();
+    void this.router.navigate(['/places']);
   }
 }
