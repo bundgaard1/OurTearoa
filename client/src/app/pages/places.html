@@ -1,12 +1,28 @@
 <div class="layout" [class.panel-open]="panelOpen()">
 <section class="list">
   <h1>Places</h1>
+  <div class="filters">
+    <label>
+      Search
+      <input type="search" [value]="query()" (input)="setQuery($any($event.target).value)" />
+    </label>
+    <label>
+      Region
+      <select [value]="region()" (change)="setRegion($any($event.target).value)">
+        <option value="">All regions</option>
+        @for (r of regions(); track r) {
+          <option [value]="r" [selected]="r === region()">{{ r }}</option>
+        }
+      </select>
+    </label>
+    <button type="button" (click)="clearFilters()" [disabled]="!filtered()">Clear filters</button>
+  </div>
   @if (loading()) {
     <app-loading />
   } @else if (failed()) {
     <app-error-alert message="Could not load places." (retry)="load()" />
   } @else if (places().length === 0) {
-    <app-empty-state message="No places found." />
+    <app-empty-state [message]="filtered() ? 'No places match your filters.' : 'No places found.'" />
   } @else {
     <ul class="grid">
       @for (place of places(); track place.id) {
