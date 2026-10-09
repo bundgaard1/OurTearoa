@@ -1,8 +1,10 @@
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { ApiService } from '../core/api/api.service';
+import { AuthStore } from '../core/auth/auth.store';
 import { Review } from '../core/models';
 import { ErrorAlert } from '../shared/error-alert';
 import { Loading } from '../shared/loading';
@@ -16,6 +18,7 @@ import { ReviewForm } from './review-form';
 })
 export class PlaceReviews {
   private readonly api = inject(ApiService);
+  protected readonly auth = inject(AuthStore);
   private request?: Subscription;
 
   readonly placeId = input.required<string>();
@@ -23,6 +26,8 @@ export class PlaceReviews {
   readonly reviews = signal<Review[]>([]);
   readonly loading = signal(true);
   readonly failed = signal(false);
+  readonly editingId = signal<string | null>(null);
+  readonly actionError = signal<string | null>(null);
 
   readonly count = computed(() => this.reviews().length);
   readonly average = computed(() => {
@@ -42,6 +47,44 @@ export class PlaceReviews {
 
   addReview(review: Review): void {
     this.reviews.update((list) => [review, ...list]);
+  }
+
+  startEdit(review: Review): void {
+    this.actionError.set(null);
+    this.editingId.set(review.id);
+  }
+
+  stopEdit(): void {
+    this.editingId.set(null);
+  }
+
+  replaceReview(review: Review): void {
+    this.reviews.update((list) => list.map((item) => (item.id === review.id ? review : item)));
+    this.editingId.set(null);
+  }
+
+  remove(review: Review): void {
+    if (!window.confirm('Delete this review?')) {
+      return;
+    }
+    this.actionError.set(null);
+    this.api.delete(`/reviews/${encodeURIComponent(review.id)}`).subscribe({
+      next: () => this.dropReview(review.id),
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 404) {
+          this.dropReview(review.id);
+          return;
+        }
+        this.actionError.set('Could not delete the review. Try again.');
+      },
+    });
+  }
+
+  private dropReview(id: string): void {
+    this.reviews.update((list) => list.filter((item) => item.id !== id));
+    if (this.editingId() === id) {
+      this.editingId.set(null);
+    }
   }
 
   stars(rating: number): string {

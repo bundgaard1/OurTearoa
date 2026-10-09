@@ -1,6 +1,6 @@
 @if (auth.isAuthenticated()) {
   <form class="review-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <h4>Write a review</h4>
+    <h4>{{ review() ? 'Edit your review' : 'Write a review' }}</h4>
     <div class="rating" role="radiogroup" aria-label="Rating">
       @for (n of ratings; track n) {
         <button
@@ -26,7 +26,12 @@
     @if (error()) {
       <p class="form-error" role="alert">{{ error() }}</p>
     }
-    <button type="submit" class="submit" [disabled]="pending()">Post review</button>
+    <div class="actions">
+      <button type="submit" class="submit" [disabled]="pending()">{{ review() ? 'Save changes' : 'Post review' }}</button>
+      @if (review()) {
+        <button type="button" class="cancel" (click)="cancelled.emit()">Cancel</button>
+      }
+    </div>
   </form>
 } @else {
   <p class="login-prompt"><a routerLink="/login" [queryParams]="{ returnUrl: '/places/' + placeId() }">Log in</a> to write a review.</p>

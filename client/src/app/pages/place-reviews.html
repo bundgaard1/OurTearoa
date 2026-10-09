@@ -14,6 +14,14 @@
     <ul class="list">
       @for (review of reviews(); track review.id) {
         <li class="review">
+          @if (editingId() === review.id) {
+            <app-review-form
+              [placeId]="placeId()"
+              [review]="review"
+              (updated)="replaceReview($event)"
+              (cancelled)="stopEdit()"
+            />
+          } @else {
           <p class="head">
             <strong class="author">{{ review.user.name }}</strong>
             <span class="stars" [attr.aria-label]="review.rating + ' out of 5'">{{ stars(review.rating) }}</span>
@@ -22,9 +30,19 @@
           @if (review.comment) {
             <p class="comment">{{ review.comment }}</p>
           }
+          @if (auth.user()?.id === review.userId) {
+            <p class="controls">
+              <button type="button" class="edit" (click)="startEdit(review)">Edit</button>
+              <button type="button" class="delete" (click)="remove(review)">Delete</button>
+            </p>
+          }
+          }
         </li>
       }
     </ul>
+    @if (actionError()) {
+      <p class="action-error" role="alert">{{ actionError() }}</p>
+    }
   }
   <app-review-form [placeId]="placeId()" (created)="addReview($event)" />
 </section>
