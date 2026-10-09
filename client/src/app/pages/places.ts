@@ -19,6 +19,7 @@ export class PlacesPage {
   readonly places = signal<Place[]>([]);
   readonly loading = signal(true);
   readonly failed = signal(false);
+  readonly panelOpen = signal(false);
 
   constructor() {
     this.load();

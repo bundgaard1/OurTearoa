@@ -1,4 +1,5 @@
-<section>
+<div class="layout" [class.panel-open]="panelOpen()">
+<section class="list">
   <h1>Places</h1>
   @if (loading()) {
     <app-loading />
@@ -22,4 +23,5 @@
     </ul>
   }
 </section>
-<router-outlet />
+<router-outlet (activate)="panelOpen.set(true)" (deactivate)="panelOpen.set(false)" />
+</div>
