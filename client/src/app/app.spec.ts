@@ -19,6 +19,7 @@ import { RegisterPage } from './pages/register';
 describe('app routes', () => {
   beforeEach(() => {
     localStorage.clear();
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
     });
@@ -27,9 +28,6 @@ describe('app routes', () => {
   const cases: [string, unknown][] = [
     ['/login', LoginPage],
     ['/register', RegisterPage],
-    ['/favorites', FavoritesPage],
-    ['/itinerary', ItineraryPage],
-    ['/profile', ProfilePage],
     ['/nowhere/at/all', NotFoundPage],
   ];
 
@@ -37,6 +35,25 @@ describe('app routes', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl(url);
     expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(component as never);
+  });
+
+  it.each(['/favorites', '/itinerary', '/profile'])('%s redirects anonymous users to login with returnUrl', async (url) => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    const router = TestBed.inject(Router);
+    expect(router.url).toBe(`/login?returnUrl=${encodeURIComponent(url)}`);
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(LoginPage);
+  });
+
+  it.each([
+    ['/favorites', FavoritesPage],
+    ['/itinerary', ItineraryPage],
+    ['/profile', ProfilePage],
+  ])('%s opens for a logged-in user', async (url, component) => {
+    TestBed.inject(AuthStore).setSession({ token: 't', user: { id: 'u1', email: 'a@b.co', name: 'Ann' } });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(component);
   });
 
   it('redirects the root to /places', async () => {
