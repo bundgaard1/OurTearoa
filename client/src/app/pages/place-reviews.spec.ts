@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { environment } from '../../environments/environment';
 import { Review } from '../core/models';
@@ -22,7 +23,7 @@ describe('PlaceReviews', () => {
   const url = `${environment.apiUrl}/places/p1/reviews`;
 
   function setup() {
-    TestBed.configureTestingModule({ imports: [PlaceReviews], providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({ imports: [PlaceReviews], providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()] });
     http = TestBed.inject(HttpTestingController);
     const fixture = TestBed.createComponent(PlaceReviews);
     fixture.componentRef.setInput('placeId', 'p1');
@@ -76,6 +77,17 @@ describe('PlaceReviews', () => {
     http.expectOne(url).flush([review('1', 5, 'Great')]);
     fixture.detectChanges();
     expect(el.querySelectorAll('li.review').length).toBe(1);
+  });
+
+  it('adds a newly posted review to the top of the list without reloading', () => {
+    const fixture = setup();
+    http.expectOne(url).flush([review('1', 5, 'Superb')]);
+    fixture.componentInstance.addReview(review('2', 3, 'Fine', 'Ben'));
+    fixture.detectChanges();
+    const items = (fixture.nativeElement as HTMLElement).querySelectorAll('li.review');
+    expect(items.length).toBe(2);
+    expect(items[0].querySelector('.author')?.textContent).toBe('Ben');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.summary')?.textContent).toContain('4.0');
   });
 
   it('reloads when the place changes', () => {

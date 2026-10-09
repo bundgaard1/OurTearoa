@@ -6,10 +6,11 @@ import { ApiService } from '../core/api/api.service';
 import { Review } from '../core/models';
 import { ErrorAlert } from '../shared/error-alert';
 import { Loading } from '../shared/loading';
+import { ReviewForm } from './review-form';
 
 @Component({
   selector: 'app-place-reviews',
-  imports: [DatePipe, Loading, ErrorAlert],
+  imports: [DatePipe, Loading, ErrorAlert, ReviewForm],
   templateUrl: './place-reviews.html',
   styleUrl: './place-reviews.scss',
 })
@@ -37,6 +38,10 @@ export class PlaceReviews {
 
   retry(): void {
     this.load(this.placeId());
+  }
+
+  addReview(review: Review): void {
+    this.reviews.update((list) => [review, ...list]);
   }
 
   stars(rating: number): string {
