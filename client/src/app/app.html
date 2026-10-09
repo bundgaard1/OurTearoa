@@ -1,21 +1,18 @@
-<main style="font-family: sans-serif; max-width: 600px; margin: 3rem auto; padding: 1.5rem; border: 1px solid #ccc; border-radius: 8px;">
-  <h1>OurAotearoa — Cloud Healthcheck</h1>
-
-  @if (healthData(); as health) {
-    <div style="background-color: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-      <p><strong>Status:</strong> {{ health.status }}</p>
-      <p><strong>Database:</strong> {{ health.database }}</p>
-      <p><strong>Round-trip:</strong> {{ health.latencyMs }} ms</p>
-      <p><strong>Backend Timestamp:</strong> {{ health.timestamp }}</p>
-      @if (health.reason) {
-        <p><strong>Reason:</strong> {{ health.reason }}</p>
-      }
-    </div>
-  } @else if (error()) {
-    <div style="background-color: #ffebee; color: #c62828; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
-      <p><strong>Error:</strong> {{ error() }}</p>
-    </div>
-  } @else {
-    <p>Checking API health...</p>
-  }
+<header class="header">
+  <a routerLink="/places" class="brand">OurTearoa</a>
+  <nav class="nav">
+    <a routerLink="/places" routerLinkActive="active">Places</a>
+    @if (auth.isAuthenticated()) {
+      <a routerLink="/favorites" routerLinkActive="active">Favourites</a>
+      <a routerLink="/itinerary" routerLinkActive="active">Itinerary</a>
+      <a routerLink="/profile" routerLinkActive="active">{{ auth.user()?.name }}</a>
+      <button type="button" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a routerLink="/register" routerLinkActive="active">Register</a>
+    }
+  </nav>
+</header>
+<main class="content">
+  <router-outlet />
 </main>

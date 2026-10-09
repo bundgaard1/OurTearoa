@@ -1,64 +1,104 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Router, provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 
 import { App } from './app';
+import { routes } from './app.routes';
+import { AuthStore } from './core/auth/auth.store';
+import { FavoritesPage } from './pages/favorites';
+import { ItineraryPage } from './pages/itinerary';
+import { LoginPage } from './pages/login';
+import { NotFoundPage } from './pages/not-found';
+import { PlaceDetailPage } from './pages/place-detail';
+import { PlacesPage } from './pages/places';
+import { ProfilePage } from './pages/profile';
+import { RegisterPage } from './pages/register';
 
-describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-  });
-
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('OurAotearoa — Cloud Healthcheck');
-  });
-
-  it('should request the health endpoint on init', async () => {
-    const fixture = TestBed.createComponent(App);
-    const httpMock = TestBed.inject(HttpTestingController);
-    await fixture.whenStable();
-
-    const req = httpMock.expectOne(
-      (r) => r.url.endsWith('/api/health') && r.method === 'GET',
-    );
-    req.flush({
-      status: 'UP',
-      timestamp: '2026-09-29T00:18:23.886Z',
-      database: 'UP',
-      latencyMs: 34.9,
-      reason: null,
+describe('app routes', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
     });
-    await fixture.whenStable();
-
-    expect(fixture.componentInstance.healthData()?.database).toBe('UP');
-    expect(fixture.componentInstance.healthData()?.latencyMs).toBe(34.9);
-    httpMock.verify();
   });
 
-  it('should surface an error when the health request fails', async () => {
+  const cases: [string, unknown][] = [
+    ['/login', LoginPage],
+    ['/register', RegisterPage],
+    ['/nowhere/at/all', NotFoundPage],
+  ];
+
+  it.each(cases)('%s resolves to its component', async (url, component) => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(component as never);
+  });
+
+  it.each(['/favorites', '/itinerary', '/profile'])('%s redirects anonymous users to login with returnUrl', async (url) => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    const router = TestBed.inject(Router);
+    expect(router.url).toBe(`/login?returnUrl=${encodeURIComponent(url)}`);
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(LoginPage);
+  });
+
+  it.each([
+    ['/favorites', FavoritesPage],
+    ['/itinerary', ItineraryPage],
+    ['/profile', ProfilePage],
+  ])('%s opens for a logged-in user', async (url, component) => {
+    TestBed.inject(AuthStore).setSession({ token: 't', user: { id: 'u1', email: 'a@b.co', name: 'Ann' } });
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl(url);
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(component);
+  });
+
+  it('redirects the root to /places', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/');
+    expect(TestBed.inject(Router).url).toBe('/places');
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(PlacesPage);
+  });
+
+  it('renders /places/:id as a child inside the places page', async () => {
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/places/abc');
+    expect(harness.routeDebugElement?.componentInstance).toBeInstanceOf(PlacesPage);
+    expect(harness.routeNativeElement?.querySelector('app-place-detail')).not.toBeNull();
+    expect(PlaceDetailPage).toBeDefined();
+  });
+});
+
+describe('App shell header', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      imports: [App],
+      providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting()],
+    });
+  });
+
+  it('shows Login and Register when logged out', () => {
     const fixture = TestBed.createComponent(App);
-    const httpMock = TestBed.inject(HttpTestingController);
-    await fixture.whenStable();
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).querySelector('nav')!.textContent;
+    expect(text).toContain('Login');
+    expect(text).toContain('Register');
+    expect(text).not.toContain('Logout');
+  });
 
-    const req = httpMock.expectOne(
-      (r) => r.url.endsWith('/api/health') && r.method === 'GET',
-    );
-    req.flush('nope', { status: 503, statusText: 'Service Unavailable' });
-    await fixture.whenStable();
+  it('shows the user name and Logout when logged in, and logout clears the session', () => {
+    TestBed.inject(AuthStore).setSession({ token: 't', user: { id: 'u1', email: 'a@b.co', name: 'Ann' } });
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const nav = (fixture.nativeElement as HTMLElement).querySelector('nav')!;
+    expect(nav.textContent).toContain('Ann');
+    expect(nav.textContent).not.toContain('Login');
 
-    expect(fixture.componentInstance.error()).toBe('Could not reach Express server');
-    httpMock.verify();
+    nav.querySelector<HTMLButtonElement>('button')!.click();
+    expect(TestBed.inject(AuthStore).isAuthenticated()).toBe(false);
   });
 });
