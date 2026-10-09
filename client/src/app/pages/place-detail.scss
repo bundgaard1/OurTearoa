@@ -29,3 +29,12 @@
     background: var(--color-bg);
   }
 }
+
+.photo {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+.meta {
+  color: var(--color-muted);
+}
