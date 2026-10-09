@@ -1,0 +1,38 @@
+@if (auth.isAuthenticated()) {
+  <form class="review-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h4>{{ review() ? 'Edit your review' : 'Write a review' }}</h4>
+    <div class="rating" role="radiogroup" aria-label="Rating">
+      @for (n of ratings; track n) {
+        <button
+          type="button"
+          class="star"
+          role="radio"
+          [class.on]="n <= form.controls.rating.value"
+          [attr.aria-checked]="n === form.controls.rating.value"
+          [attr.aria-label]="n + ' out of 5'"
+          (click)="setRating(n)"
+        >
+          ★
+        </button>
+      }
+    </div>
+    @if (submitted() && form.controls.rating.invalid) {
+      <p class="field-error">Choose a rating from 1 to 5.</p>
+    }
+    <label>
+      Comment (optional)
+      <textarea formControlName="comment" rows="3"></textarea>
+    </label>
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+    <div class="actions">
+      <button type="submit" class="submit" [disabled]="pending()">{{ review() ? 'Save changes' : 'Post review' }}</button>
+      @if (review()) {
+        <button type="button" class="cancel" (click)="cancelled.emit()">Cancel</button>
+      }
+    </div>
+  </form>
+} @else {
+  <p class="login-prompt"><a routerLink="/login" [queryParams]="{ returnUrl: '/places/' + placeId() }">Log in</a> to write a review.</p>
+}
