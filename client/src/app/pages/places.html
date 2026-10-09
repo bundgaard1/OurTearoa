@@ -1,0 +1,25 @@
+<section>
+  <h1>Places</h1>
+  @if (loading()) {
+    <app-loading />
+  } @else if (failed()) {
+    <app-error-alert message="Could not load places." (retry)="load()" />
+  } @else if (places().length === 0) {
+    <app-empty-state message="No places found." />
+  } @else {
+    <ul class="grid">
+      @for (place of places(); track place.id) {
+        <li>
+          <a class="card" [routerLink]="['/places', place.id]">
+            @if (place.imageUrl) {
+              <img [src]="place.imageUrl" [alt]="place.name" />
+            }
+            <h2>{{ place.name }}</h2>
+            <p class="meta">{{ place.region }}@if (place.type) { · {{ place.type }}}</p>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>
+<router-outlet />
