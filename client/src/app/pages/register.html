@@ -1,0 +1,31 @@
+<section class="form-page">
+  <h1>Register</h1>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label>
+      Email
+      <input type="email" formControlName="email" autocomplete="email" />
+    </label>
+    @if (submitted() && form.controls.email.invalid) {
+      <p class="field-error">Enter a valid email address.</p>
+    }
+    <label>
+      Name
+      <input type="text" formControlName="name" autocomplete="name" />
+    </label>
+    @if (submitted() && form.controls.name.invalid) {
+      <p class="field-error">Name is required (max 100 characters).</p>
+    }
+    <label>
+      Password
+      <input type="password" formControlName="password" autocomplete="new-password" />
+    </label>
+    @if (submitted() && form.controls.password.invalid) {
+      <p class="field-error">Password must be at least 8 characters.</p>
+    }
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+    <button type="submit" [disabled]="pending()">Create account</button>
+  </form>
+  <p>Already registered? <a routerLink="/login">Log in</a></p>
+</section>
