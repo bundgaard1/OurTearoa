@@ -15,6 +15,7 @@
     }
     @if (p.latitude !== null && p.longitude !== null) {
       <p class="coords">Coordinates: {{ p.latitude }}, {{ p.longitude }}</p>
+      <app-place-map [latitude]="p.latitude" [longitude]="p.longitude" [name]="p.name" />
     }
   }
 </aside>
