@@ -56,6 +56,7 @@ describe('PlaceDetailPage content', () => {
     expect(el.textContent).toContain('A fjord.');
     expect(el.textContent).toContain('-44.67, 167.92');
     expect(el.querySelector('img')?.getAttribute('src')).toBe('/api/uploads/m.jpg');
+    expect(el.querySelector('app-place-map')).not.toBeNull();
   });
 
   it('renders a sparse place without breaking', () => {
@@ -68,6 +69,7 @@ describe('PlaceDetailPage content', () => {
     expect(el.querySelector('h2')?.textContent).toBe('Milford Sound');
     expect(el.querySelector('.description')).toBeNull();
     expect(el.querySelector('.coords')).toBeNull();
+    expect(el.querySelector('app-place-map')).toBeNull();
     expect(el.querySelector('img')).toBeNull();
     expect(el.querySelector('.meta')?.textContent).not.toContain('·');
   });
