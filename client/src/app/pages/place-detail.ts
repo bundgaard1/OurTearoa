@@ -9,10 +9,11 @@ import { Place } from '../core/models';
 import { ErrorAlert } from '../shared/error-alert';
 import { Loading } from '../shared/loading';
 import { PlaceMap } from './place-map';
+import { PlaceReviews } from './place-reviews';
 
 @Component({
   selector: 'app-place-detail',
-  imports: [RouterLink, Loading, ErrorAlert, PlaceMap],
+  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews],
   templateUrl: './place-detail.html',
   styleUrl: './place-detail.scss',
 })

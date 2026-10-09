@@ -1,0 +1,29 @@
+<section class="reviews">
+  <h3>Reviews</h3>
+  @if (loading()) {
+    <app-loading />
+  } @else if (failed()) {
+    <app-error-alert message="Could not load reviews." (retry)="retry()" />
+  } @else if (count() === 0) {
+    <p class="placeholder">No reviews yet.</p>
+  } @else {
+    <p class="summary">
+      <span class="average">{{ average()!.toFixed(1) }}</span> / 5 from {{ count() }}
+      {{ count() === 1 ? 'review' : 'reviews' }}
+    </p>
+    <ul class="list">
+      @for (review of reviews(); track review.id) {
+        <li class="review">
+          <p class="head">
+            <strong class="author">{{ review.user.name }}</strong>
+            <span class="stars" [attr.aria-label]="review.rating + ' out of 5'">{{ stars(review.rating) }}</span>
+            <time class="date">{{ review.createdAt | date: 'mediumDate' }}</time>
+          </p>
+          @if (review.comment) {
+            <p class="comment">{{ review.comment }}</p>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
