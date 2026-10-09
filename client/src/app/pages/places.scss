@@ -34,3 +34,14 @@
   margin: 0;
   color: var(--color-muted);
 }
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.list {
+  flex: 1;
+  min-width: 0;
+}
