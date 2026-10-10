@@ -1,0 +1,22 @@
+<aside class="panel" aria-label="Place detail">
+  <a class="close" routerLink="/places" aria-label="Close">Close</a>
+  @if (loading()) {
+    <app-loading />
+  } @else if (error()) {
+    <app-error-alert [message]="error()!" (retry)="load()" />
+  } @else if (place(); as p) {
+    @if (p.imageUrl) {
+      <img class="photo" [src]="p.imageUrl" [alt]="p.name" />
+    }
+    <h2>{{ p.name }}</h2>
+    <p class="meta">{{ p.region }}@if (p.type) { · {{ p.type }}}</p>
+    @if (p.description) {
+      <p class="description">{{ p.description }}</p>
+    }
+    @if (p.latitude !== null && p.longitude !== null) {
+      <p class="coords">Coordinates: {{ p.latitude }}, {{ p.longitude }}</p>
+      <app-place-map [latitude]="p.latitude" [longitude]="p.longitude" [name]="p.name" />
+    }
+    <app-place-reviews [placeId]="p.id" />
+  }
+</aside>

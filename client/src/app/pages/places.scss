@@ -34,3 +34,36 @@
   margin: 0;
   color: var(--color-muted);
 }
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.list {
+  flex: 1;
+  min-width: 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  input,
+  select {
+    font: inherit;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+}
