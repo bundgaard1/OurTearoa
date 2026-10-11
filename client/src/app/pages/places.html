@@ -34,6 +34,7 @@
             <h2>{{ place.name }}</h2>
             <p class="meta">{{ place.region }}@if (place.type) { · {{ place.type }}}</p>
           </a>
+          <app-favorite-toggle [placeId]="place.id" />
         </li>
       }
     </ul>
