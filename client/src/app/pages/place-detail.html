@@ -10,6 +10,7 @@
     }
     <h2>{{ p.name }}</h2>
     <p class="meta">{{ p.region }}@if (p.type) { · {{ p.type }}}</p>
+    <app-favorite-toggle [placeId]="p.id" />
     @if (p.description) {
       <p class="description">{{ p.description }}</p>
     }

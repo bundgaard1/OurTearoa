@@ -8,12 +8,13 @@ import { ApiService } from '../core/api/api.service';
 import { Place } from '../core/models';
 import { ErrorAlert } from '../shared/error-alert';
 import { Loading } from '../shared/loading';
+import { FavoriteToggle } from './favorite-toggle';
 import { PlaceMap } from './place-map';
 import { PlaceReviews } from './place-reviews';
 
 @Component({
   selector: 'app-place-detail',
-  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews],
+  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews, FavoriteToggle],
   templateUrl: './place-detail.html',
   styleUrl: './place-detail.scss',
 })

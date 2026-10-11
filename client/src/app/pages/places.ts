@@ -7,10 +7,11 @@ import { Place } from '../core/models';
 import { EmptyState } from '../shared/empty-state';
 import { ErrorAlert } from '../shared/error-alert';
 import { Loading } from '../shared/loading';
+import { FavoriteToggle } from './favorite-toggle';
 
 @Component({
   selector: 'app-places',
-  imports: [RouterLink, RouterOutlet, Loading, ErrorAlert, EmptyState],
+  imports: [RouterLink, RouterOutlet, Loading, ErrorAlert, EmptyState, FavoriteToggle],
   templateUrl: './places.html',
   styleUrl: './places.scss',
 })
