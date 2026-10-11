@@ -20,11 +20,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'client/package-lock.json'
 
-      # 1. Build Angular on GitHub's Runner
+      # 1. Install, Test and Build Angular on GitHub's Runner
+      - name: Install Client Dependencies
+        run: npm --prefix client ci
+
+      - name: Run Client Unit Tests
+        run: npm --prefix client test -- --watch=false
+
       - name: Build Angular Frontend
         run: |
           cd client
-          npm ci
           npx ng build --configuration production
 
       # 2. Configure SSH Agent
