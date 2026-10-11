@@ -1,0 +1,32 @@
+<section>
+  <h1>Favourites</h1>
+  @if (store.loading()) {
+    <app-loading />
+  } @else if (store.failed()) {
+    <app-error-alert message="Could not load favourites." (retry)="retry()" />
+  } @else if (store.favorites().length === 0) {
+    <app-empty-state message="You have no favourites yet.">
+      <a routerLink="/places">Browse places</a>
+    </app-empty-state>
+  } @else {
+    <ul class="list">
+      @for (favorite of store.favorites(); track favorite.id) {
+        <li class="row">
+          <a class="name" [routerLink]="['/places', favorite.place.id]">{{ favorite.place.name }}</a>
+          <span class="meta">{{ favorite.place.region }}@if (favorite.place.type) { · {{ favorite.place.type }} }</span>
+          <button
+            type="button"
+            class="remove"
+            (click)="store.remove(favorite.id)"
+            [disabled]="store.isPending(favorite.placeId)"
+          >
+            Remove
+          </button>
+          @if (store.hasError(favorite.placeId)) {
+            <span class="row-error" role="alert">Could not remove. Try again.</span>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
