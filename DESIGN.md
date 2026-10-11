@@ -54,6 +54,12 @@ document traces back to one of the stories below.
 | US-14 | As a contributor, I want to add a new place with its details and image so that the catalogue grows beyond the seed data. | [ ] |
 | US-15 | As a contributor, I want to edit or remove a place I have added so that catalogue data stays accurate. | [ ] |
 
+> US-16 (contributor image upload to cloud storage) was removed as a separate story.
+> Place images are covered by the S3 presigned direct upload (#71, #73, #87): any
+> signed-in user can attach a photo on the place detail panel. An earlier plan to
+> store images on the EC2 disk was dropped: it would put upload traffic and storage
+> on the 1 GB `t3.micro`, and every image would be lost if the instance were replaced.
+
 ### 2.4 As an evaluator / operations user 
 
 | ID | User story | Acceptance criteria |
@@ -118,8 +124,8 @@ TLS-verified against the AWS global CA bundle.
 | Service | Purpose | Notes |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
-| RDS PostgreSQL | All application data | [region, instance class, storage, backup retention] |
-| S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87 |
+| RDS PostgreSQL | All application data | `ap-southeast-2` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem`; [instance class, storage, backup retention to be confirmed from the AWS console] |
+| S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload still under investigation in #106 |
 | DuckDNS | Public DNS for `ourtearoa.duckdns.org` | [update mechanism] |
 
 **Access control.** The EC2 instance is reachable only on 443 (and 22 for SSH from
@@ -213,20 +219,75 @@ settings are wrong.
 
 ### 4.1 Screens
 
-| # | Screen | Purpose | Route |
-| :--- | :--- | :--- | :--- |
-| 1 | Place list / catalogue | Browse and filter all places | [ ] |
-| 2 | Place detail | Full place information, map, reviews (opens on the side and fills half the browser window) | [ ] |
-| 3 | Login | Authenticate an existing user | [ ] |
-| 4 | Register | Create a new account | [ ] |
-| 5 | Favourites | The user's saved shortlist | [ ] |
-| 6 | Itinerary | Dated trip plan built from places | [ ] |
-| 7 | [ ] | [ ] | [ ] |
+The frontend is deliberately minimal: plain standalone components, a single global
+stylesheet with CSS variables and no UI component library. The focus of the project
+is the cloud architecture, so the client only needs to exercise every API feature
+with clear loading, empty and error states (US-19).
 
-> _Placeholder — Angular router config is currently empty; routes are to be
-> assigned as screens are built._
+| # | Screen | Purpose | Route | Access |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Place list / catalogue | Browse, search by name and filter by region | `/places` (`/` redirects here) | public |
+| 2 | Place detail | Photo, description, map, favourite toggle, "Plan a visit" form, photo upload and reviews | `/places/:id` (child of `/places`) | public; actions need login |
+| 3 | Login | Authenticate an existing user | `/login?returnUrl=...` | public |
+| 4 | Register | Create a new account | `/register` | public |
+| 5 | Favourites | The user's saved shortlist, with remove | `/favorites` | auth guard |
+| 6 | Itinerary | Dated trip plan sorted by start date, with edit and remove | `/itinerary` | auth guard |
+| 7 | Profile | Name, email, member since, account deletion | `/profile` | auth guard |
+| 8 | Not found | Fallback for unknown URLs | `**` | public |
+
+**Master/detail.** `/places/:id` is a child route of `/places`, so the catalogue
+stays rendered and the detail panel opens beside it at half the window width. On
+screens of 768 px or less the panel covers the full screen. Closing the panel
+navigates back to `/places`. Because the panel is a route, a place link can be
+shared or bookmarked.
+
+The contributor stories (US-14, US-15) have no screen yet. The API endpoints exist
+(section 4.3), but adding and editing places is a later-stage feature.
 
 ### 4.2 Navigation and user flows
+
+The header is always visible. Visitors see **Places**, **Login** and **Register**;
+signed-in users see **Places**, **Favourites**, **Itinerary**, their name (links to
+**Profile**) and **Logout**.
+
+**Primary flow:** browse, open a place, log in, save it as a favourite, plan a visit.
+
+```mermaid
+flowchart LR
+    A["/places<br/>catalogue"] -->|click card| B["/places/:id<br/>detail panel"]
+    B -->|"visitor: Log in link"| C["/login?returnUrl=/places/:id"]
+    C -->|success| B
+    B -->|"Save (heart)"| D["/favorites"]
+    B -->|Plan a visit: dates + note| E["/itinerary<br/>sorted by date"]
+    D -->|click place| B
+    E -->|click place| B
+```
+
+1. A visitor opens `/places`, searches by name or filters by region, and selects a
+   card. The detail panel opens at `/places/:id`.
+2. Reading is public. The favourite toggle, "Plan a visit", the review form and
+   the photo upload are shown only to signed-in users. In place of "Plan a visit"
+   and the review form, visitors see a "Log in" link that carries
+   `returnUrl=/places/:id`.
+3. After login the user returns to that place via `returnUrl`. Registration always
+   continues to `/places`.
+4. "Save" adds the place to favourites in place, without leaving the panel. The
+   same toggle is on every catalogue card.
+5. "Plan a visit" creates an itinerary entry with start date, end date and an
+   optional note. `/itinerary` lists the entries by start date.
+
+**Auth guard and session handling.**
+
+- Login stores the JWT (valid 7 days) and the user in `localStorage`; an HTTP
+  interceptor adds `Authorization: Bearer <token>` to requests to the API base URL
+  only, so the token is never sent to S3 or other hosts.
+- `/favorites`, `/itinerary` and `/profile` use `authGuard`. A visitor opening one of
+  them is redirected to `/login?returnUrl=<requested URL>` and lands there after
+  logging in.
+- If the API answers `401` (expired or invalid token) on a protected call, the
+  interceptor clears the session and redirects to `/login` with the current URL as
+  `returnUrl`.
+- Logout and account deletion clear the session and return to `/places`.
 
 
 
@@ -260,11 +321,11 @@ Base URL: `https://ourtearoa.duckdns.org/api` (local: `http://localhost:3000/api
 | POST | `/reviews` | yes | 201 | `placeId`, `rating` (1-5), `comment?` |
 | PUT | `/reviews/:id` | yes | 200 | own reviews only |
 | DELETE | `/reviews/:id` | yes | 204 | own reviews only |
-| GET | `/places` | no | 200 | in progress (issue #35) |
-| GET | `/places/:id` | no | 200 | in progress (issue #35) |
-| POST | `/places` | yes | 201 | in progress (issue #35) |
-| PUT | `/places/:id` | yes | 200 | in progress (issue #35) |
-| DELETE | `/places/:id` | yes | 204 | in progress (issue #35) |
+| GET | `/places` | no | 200 | optional `region` (exact, case-insensitive) and `q` (name contains, case-insensitive); sorted by name |
+| GET | `/places/:id` | no | 200 | 404 if unknown |
+| POST | `/places` | yes | 201 | `name` (max 200), `region` (max 100), `description?`, `latitude?` (-90..90), `longitude?` (-180..180), `type?` |
+| PUT | `/places/:id` | yes | 200 | partial update with the same validation |
+| DELETE | `/places/:id` | yes | 204 | cascades to its reviews, favourites and itinerary entries |
 | POST | `/places/:id/image-upload-url` | yes | 201 | `contentType` (jpeg/png/webp); presigned S3 POST, `key`, `imageUrl`; 503 if S3 is not configured |
 | POST | `/places/:id/image` | yes | 200 | `key` from the upload step; checks the object exists and saves `imageUrl` |
 
@@ -275,13 +336,93 @@ codes, so they can be exercised without the client.
 
 ## 5. Data Design
 
-Place
+The schema lives in `backend/prisma/schema.prisma` and is applied with Prisma
+migrations (`backend/prisma/migrations/`): `migrate dev` locally, `migrate deploy`
+in the deployment workflow. All primary keys are UUID strings generated by Prisma.
+Model fields are camelCase; tables and columns are snake_case via `@@map`/`@map`
+(for example `Place.imageUrl` is the column `places.image_url`).
 
+```mermaid
+erDiagram
+    USER ||--o{ REVIEW : writes
+    USER ||--o{ FAVORITE : saves
+    USER ||--o{ ITINERARY_ENTRY : plans
+    PLACE ||--o{ REVIEW : has
+    PLACE ||--o{ FAVORITE : "is saved in"
+    PLACE ||--o{ ITINERARY_ENTRY : "is planned in"
+```
 
-Review
+### 5.1 Place (`places`)
 
-Itinerary-Entry
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `id` | String (UUID) | primary key |
+| `name` | VarChar(200) | required |
+| `region` | VarChar(100) | required; used by the region filter |
+| `description` | String? | |
+| `latitude` | Float? | -90..90; the map is shown only when both coordinates are set |
+| `longitude` | Float? | -180..180 |
+| `type` | String? | free text, for example "Fjord" or "National Park" |
+| `imageUrl` | String? | full public S3 URL under `public/places/<id>/`, set by `POST /places/:id/image` |
+| `createdAt`, `updatedAt` | DateTime | set automatically |
 
+### 5.2 User (`users`)
 
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `id` | String (UUID) | primary key; the JWT `sub` |
+| `email` | String | unique |
+| `password` | String | bcrypt hash, never returned by the API |
+| `name` | VarChar(100) | shown on reviews |
+| `createdAt`, `updatedAt` | DateTime | `createdAt` is shown as "Member since" |
 
-User
+### 5.3 Review (`reviews`)
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `id` | String (UUID) | primary key |
+| `placeId` | String | FK to `places.id`, cascade delete, indexed |
+| `userId` | String | FK to `users.id`, cascade delete |
+| `rating` | SmallInt | 1..5, validated by the API |
+| `comment` | String? | |
+| `createdAt`, `updatedAt` | DateTime | |
+
+### 5.4 Favorite (`favorites`)
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `id` | String (UUID) | primary key |
+| `placeId` | String | FK to `places.id`, cascade delete, indexed |
+| `userId` | String | FK to `users.id`, cascade delete |
+| `createdAt` | DateTime | |
+
+Unique on (`userId`, `placeId`), so a place can be saved only once per user (`409`
+on a duplicate).
+
+### 5.5 ItineraryEntry (`itinerary_entries`)
+
+| Field | Type | Notes |
+| :--- | :--- | :--- |
+| `id` | String (UUID) | primary key |
+| `placeId` | String | FK to `places.id`, cascade delete |
+| `userId` | String | FK to `users.id`, cascade delete |
+| `startDate` | DateTime | |
+| `endDate` | DateTime | must not be before `startDate` (`400`) |
+| `note` | String? | |
+| `createdAt`, `updatedAt` | DateTime | |
+
+Indexed on (`userId`, `startDate`), matching `GET /itinerary`, which returns the
+user's entries ordered by start date.
+
+### 5.6 Design notes
+
+- **Cascades.** Deleting a user (`DELETE /users/me`) removes their reviews,
+  favourites and itinerary entries; deleting a place removes everything that
+  references it. No orphan rows are possible.
+- **Ownership.** Every user-owned row carries `userId`, and the API filters by the
+  token's user. Another user's row answers `404`, not `403`, so IDs cannot be
+  probed.
+- **Images outside the database.** Only the URL is stored; the bytes are in S3
+  (section 3.4). Replaced images are not yet deleted from the bucket.
+- **Seed data.** `backend/prisma/seed.ts` loads the demo places, a demo user (with a
+  hashed password) and sample reviews, favourites and an itinerary entry.
