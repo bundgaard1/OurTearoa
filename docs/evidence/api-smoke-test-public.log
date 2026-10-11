@@ -1,0 +1,47 @@
+Run: 2026-10-11T06:36:56Z
+Commit on main: 91a0bc2
+Command: scripts/api-smoke-test.sh https://ourtearoa.duckdns.org/api
+
+Base URL: https://ourtearoa.duckdns.org/api
+
+PASS  GET  /health                                         200
+PASS  POST /auth/register                                  201
+PASS  POST /auth/register (duplicate email)                409
+PASS  POST /auth/register (invalid input)                  400
+PASS  POST /auth/login (wrong password)                    401
+PASS  POST /auth/login                                     200
+PASS  GET  /users/me (no token)                            401
+PASS  GET  /users/me                                       200
+PASS  GET  /users/:id                                      200
+PASS  GET  /users/:id (unknown)                            404
+PASS  GET  /places                                         200
+PASS  GET  /places/:id                                     200
+PASS  POST /places (no token)                              401
+PASS  GET  /places?q=                                      200
+PASS  GET  /places/:id (unknown)                           404
+PASS  POST /places (invalid)                               400
+PASS  POST /places                                         201
+PASS  PUT  /places/:id                                     200
+PASS  DELETE /places/:id                                   204
+PASS  DELETE /places/:id (again)                           404
+PASS  GET  /favorites (no token)                           401
+PASS  POST /favorites                                      201
+PASS  POST /favorites (duplicate)                          409
+PASS  GET  /favorites                                      200
+PASS  DELETE /favorites/:id                                204
+PASS  DELETE /favorites/:id (again)                        404
+PASS  POST /itinerary                                      201
+PASS  POST /itinerary (end before start)                   400
+PASS  GET  /itinerary                                      200
+PASS  PUT  /itinerary/:id                                  200
+PASS  DELETE /itinerary/:id                                204
+PASS  POST /reviews (rating out of range)                  400
+PASS  POST /reviews                                        201
+PASS  GET  /reviews/:id                                    200
+PASS  GET  /places/:id/reviews                             200
+PASS  PUT  /reviews/:id                                    200
+PASS  DELETE /reviews/:id                                  204
+PASS  DELETE /users/me (cleanup)                           204
+PASS  GET  /users/me (after delete)                        404
+
+Result: 39 passed, 0 failed, 0 skipped
