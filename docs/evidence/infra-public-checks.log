@@ -1,0 +1,77 @@
+Run: 2026-10-11T22:06:52Z
+
+## 1. API health (API + RDS round-trip)
+$ curl -s -w '\nHTTP %{http_code}\n' https://ourtearoa.duckdns.org/api/health
+{"status":"UP","timestamp":"2026-10-11T22:06:52.756Z","database":"UP","latencyMs":38.93,"reason":null}
+HTTP 200
+
+## 2. HTTP redirects to HTTPS
+$ curl -sI http://ourtearoa.duckdns.org | grep -iE '^(HTTP|location|server)'
+HTTP/1.1 301 Moved Permanently
+Server: nginx/1.30.4
+Location: https://ourtearoa.duckdns.org/
+
+## 3. Client served over HTTPS
+$ curl -sI https://ourtearoa.duckdns.org/ | grep -iE '^(HTTP|content-type|server)'
+HTTP/1.1 200 OK
+Server: nginx/1.30.4
+Content-Type: text/html
+
+$ curl -s https://ourtearoa.duckdns.org/ | grep -o '<title>.*</title>'
+<title>OurTearoa</title>
+
+## 4. SPA fallback for a deep link
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' https://ourtearoa.duckdns.org/places
+HTTP 200
+
+## 5. TLS certificate
+$ echo | openssl s_client -connect ourtearoa.duckdns.org:443 -servername ourtearoa.duckdns.org 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+subject= /CN=ourtearoa.duckdns.org
+issuer= /C=US/O=Let's Encrypt/CN=YE1
+notBefore=Sep 30 00:21:27 2026 GMT
+notAfter=Dec 29 00:21:26 2026 GMT
+
+## 6. No mixed content: API base URL and absolute http:// URLs in the served bundles
+$ curl -s https://ourtearoa.duckdns.org/ | grep -oE '[a-zA-Z0-9_-]+\.js' | sort -u
+main-732ECDFW.js
+
+$ for f in $(curl -s https://ourtearoa.duckdns.org/ | grep -oE '[a-zA-Z0-9_-]+\.js' | sort -u); do curl -s https://ourtearoa.duckdns.org/$f; done | grep -oE '"https?://[a-zA-Z0-9.]+/api"' | sort -u
+"https://ourtearoa.duckdns.org/api"
+
+$ for f in $(curl -s https://ourtearoa.duckdns.org/ | grep -oE '[a-zA-Z0-9_-]+\.js' | sort -u); do curl -s https://ourtearoa.duckdns.org/$f; done | grep -oE 'http://[a-zA-Z0-9./_-]+' | sort -u | grep -vE 'www.w3.org|localhost' || echo 'none found'
+none found
+
+## 7. DNS
+$ dig +short ourtearoa.duckdns.org
+54.252.56.209
+
+## 8. Places with images stored in S3
+$ curl -s https://ourtearoa.duckdns.org/api/places | python3 -c 'import json,sys; d=json.load(sys.stdin); print(len(d), "places,", sum(1 for p in d if p.get("imageUrl")), "with imageUrl"); [print(p["name"], p["imageUrl"]) for p in d if p.get("imageUrl")]'
+8 places, 3 with imageUrl
+Abel Tasman National Park https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/bd438c6c-cc7a-4248-acfd-497654e710f7/5492e95e-4316-4983-b4bd-7e9409a07540.jpg
+Fox Glacier https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/4c800bb1-a319-4efd-a26b-173a5a793066/f87bc2d5-e7b0-4def-9a7a-8add70fa344d.jpg
+Hobbiton Movie Set https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/6d586b9a-e30e-4749-8955-d1f159f78809/e220b904-2c12-4038-aa2d-43a4b49229d1.jpg
+
+## 9. Images are served directly by S3
+$ curl -sI 'https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/bd438c6c-cc7a-4248-acfd-497654e710f7/5492e95e-4316-4983-b4bd-7e9409a07540.jpg' | grep -iE '^(HTTP|content-type|content-length|server)'
+HTTP/1.1 200 OK
+Server: AmazonS3
+Content-Length: 125745
+Content-Type: image/jpeg
+
+$ curl -sI 'https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/4c800bb1-a319-4efd-a26b-173a5a793066/f87bc2d5-e7b0-4def-9a7a-8add70fa344d.jpg' | grep -iE '^(HTTP|content-type|content-length|server)'
+HTTP/1.1 200 OK
+Server: AmazonS3
+Content-Length: 158478
+Content-Type: image/jpeg
+
+$ curl -sI 'https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/6d586b9a-e30e-4749-8955-d1f159f78809/e220b904-2c12-4038-aa2d-43a4b49229d1.jpg' | grep -iE '^(HTTP|content-type|content-length|server)'
+HTTP/1.1 200 OK
+Server: AmazonS3
+Content-Length: 45282
+Content-Type: image/jpeg
+
+## 10. Bucket listing is not public (only public/* objects are readable)
+$ curl -s -o /dev/null -w 'HTTP %{http_code}\n' https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/
+HTTP 403
+

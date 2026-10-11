@@ -1,0 +1,23 @@
+Run: 2026-10-11T22:08:21Z
+Command: gh run list --workflow deploy.yaml --limit 15
+
+created_at            result   commit  title
+2026-10-11T22:02:18Z  success  9ab6365  New favicon
+2026-10-11T21:25:38Z  success  3e57f47  Merge pull request #107 from bundgaard1/feature/design-doc
+2026-10-11T20:56:45Z  success  0a067b3  Merge pull request #105 from bundgaard1/feature/fix-deploy-prisma
+2026-10-11T08:55:37Z  success  e129666  Merge pull request #103 from bundgaard1/feature/client-place-image
+2026-10-11T08:39:27Z  success  326e138  Merge pull request #102 from bundgaard1/feature/place-image-upload
+2026-10-11T08:24:03Z  success  f686f34  Merge pull request #101 from bundgaard1/feature/ci-client-tests
+2026-10-11T08:23:43Z  failure  3223432  Merge pull request #100 from bundgaard1/feature/client-profile
+2026-10-11T07:41:41Z  success  64b55ca  Merge pull request #99 from bundgaard1/feature/client-itinerary
+2026-10-11T07:40:44Z  failure  e0d3d03  Merge pull request #98 from bundgaard1/feature/client-favourites
+2026-10-11T07:12:51Z  success  53a975d  Merge pull request #97 from bundgaard1/feature/smoke-test-log
+2026-10-10T00:31:14Z  success  91a0bc2  Small change to the index.html
+2026-10-10T00:17:04Z  success  60369e9  Merge pull request #96 from bundgaard1/feature/client-merge-stack
+2026-10-09T23:32:51Z  success  4663660  Merge pull request #88 from bundgaard1/add-s3-dependencies
+2026-10-09T23:25:28Z  success  8456fd2  Merge pull request #84 from bundgaard1/feature/client-places-catalogue
+2026-10-09T01:57:15Z  success  7ce15a5  Merge pull request #83 from bundgaard1/feature/client-register
+
+Trivial change deployed without touching the server: commit 9ab6365 (New favicon, client/public/favicon.ico)
+$ sha256 of favicon.ico in commit 9ab6365 vs. served file
+repo=4e2415b419c1746a  live=4e2415b419c1746a

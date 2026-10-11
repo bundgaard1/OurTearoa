@@ -1,5 +1,5 @@
-Run: 2026-10-11T06:36:56Z
-Commit on main: 91a0bc2
+Run: 2026-10-11T22:06:06Z
+Commit on main: 9ab6365
 Command: scripts/api-smoke-test.sh https://ourtearoa.duckdns.org/api
 
 Base URL: https://ourtearoa.duckdns.org/api
@@ -22,6 +22,12 @@ PASS  GET  /places/:id (unknown)                           404
 PASS  POST /places (invalid)                               400
 PASS  POST /places                                         201
 PASS  PUT  /places/:id                                     200
+PASS  POST /places/:id/image-upload-url (no token)         401
+PASS  POST /places/:id/image-upload-url (bad type)         400
+PASS  POST /places/:id/image-upload-url (unknown)          404
+PASS  POST /places/:id/image (no token)                    401
+PASS  POST /places/:id/image (foreign key)                 400
+PASS  POST /places/:id/image (unknown)                     404
 PASS  DELETE /places/:id                                   204
 PASS  DELETE /places/:id (again)                           404
 PASS  GET  /favorites (no token)                           401
@@ -44,4 +50,5 @@ PASS  DELETE /reviews/:id                                  204
 PASS  DELETE /users/me (cleanup)                           204
 PASS  GET  /users/me (after delete)                        404
 
-Result: 39 passed, 0 failed, 0 skipped
+Result: 45 passed, 0 failed, 0 skipped
+exit code: 0

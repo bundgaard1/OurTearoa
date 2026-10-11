@@ -1,0 +1,19 @@
+Run: 2026-10-11T22:07:14Z
+Flow: temporary user and place -> presigned POST -> direct upload to S3 -> confirm -> public read -> cleanup
+
+POST /auth/register (temporary user)                         201
+POST /auth/login                                             200
+POST /places (temporary place)                               201
+POST /places/:id/image-upload-url                            201
+  upload url: https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/
+  key:        public/places/5e32c946-d0d2-4425-97d4-fae18661c9ce/00989bed-71fd-4ca7-8f5f-ec44bcdfa576.png
+  policy fields: Content-Type, Policy, X-Amz-Algorithm, X-Amz-Credential, X-Amz-Date, X-Amz-Security-Token, X-Amz-Signature, bucket, key
+POST <S3 bucket> multipart upload, no Authorization header   204
+POST <S3 bucket> upload over 5 MB (rejected by S3 policy)    400
+POST /places/:id/image (confirm)                             200
+GET /places/:id                                              200 imageUrl=https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/public/places/5e32c946-d0d2-4425-97d4-fae18661c9ce/00989bed-71fd-4ca7-8f5f-ec44bcdfa576.png
+HEAD imageUrl (public read from S3)                          200 server=AmazonS3 type=image/png length=70
+DELETE /places/:id (cleanup)                                 204
+DELETE /users/me (cleanup)                                   204
+
+Note: the 1x1 PNG stays in the bucket because replaced or orphaned images are not deleted yet (DESIGN.md 3.4).
