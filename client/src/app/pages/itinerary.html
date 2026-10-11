@@ -1,0 +1,41 @@
+<section>
+  <h1>Itinerary</h1>
+  @if (loading()) {
+    <app-loading />
+  } @else if (failed()) {
+    <app-error-alert message="Could not load your itinerary." (retry)="load()" />
+  } @else if (entries().length === 0) {
+    <app-empty-state message="Your itinerary is empty.">
+      <a routerLink="/places">Find a place to add</a>
+    </app-empty-state>
+  } @else {
+    <ol class="entries">
+      @for (entry of entries(); track entry.id) {
+        <li class="entry">
+          @if (editingId() === entry.id) {
+            <app-itinerary-form
+              [placeId]="entry.placeId"
+              [entry]="entry"
+              (updated)="replaceEntry($event)"
+              (cancelled)="stopEdit()"
+            />
+          } @else {
+            <a class="name" [routerLink]="['/places', entry.place.id]">{{ entry.place.name }}</a>
+            <p class="date">{{ dateRange(entry) }}</p>
+            <p class="region">{{ entry.place.region }}</p>
+            @if (entry.note) {
+              <p class="note">{{ entry.note }}</p>
+            }
+            <p class="controls">
+              <button type="button" class="edit" (click)="startEdit(entry)">Edit</button>
+              <button type="button" class="delete" (click)="remove(entry)">Remove</button>
+            </p>
+          }
+        </li>
+      }
+    </ol>
+    @if (actionError()) {
+      <p class="action-error" role="alert">{{ actionError() }}</p>
+    }
+  }
+</section>

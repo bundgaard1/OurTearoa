@@ -1,0 +1,33 @@
+@if (auth.isAuthenticated()) {
+  <form class="itinerary-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label>
+      Start date
+      <input type="date" formControlName="startDate" />
+    </label>
+    <label>
+      End date
+      <input type="date" formControlName="endDate" />
+    </label>
+    @if (submitted() && form.hasError('dateRange')) {
+      <p class="field-error">End date must not be before the start date.</p>
+    }
+    <label>
+      Note (optional)
+      <textarea formControlName="note" rows="3"></textarea>
+    </label>
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p class="form-success">Added to your itinerary. <a routerLink="/itinerary">View itinerary</a></p>
+    }
+    <div class="actions">
+      <button type="submit" class="submit" [disabled]="pending()">{{ entry() ? 'Save changes' : 'Add to itinerary' }}</button>
+      @if (entry()) {
+        <button type="button" class="cancel" (click)="cancelled.emit()">Cancel</button>
+      }
+    </div>
+  </form>
+} @else {
+  <p class="login-prompt"><a routerLink="/login" [queryParams]="{ returnUrl: '/places/' + placeId() }">Log in</a> to plan a visit.</p>
+}

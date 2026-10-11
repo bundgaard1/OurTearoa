@@ -1,0 +1,41 @@
+.itinerary-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+input,
+textarea {
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+}
+
+.field-error,
+.form-error {
+  margin: 0;
+  color: var(--color-error);
+}
+
+.form-success {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.login-prompt {
+  color: var(--color-muted);
+}

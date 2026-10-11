@@ -10,10 +10,11 @@ import { ErrorAlert } from '../shared/error-alert';
 import { Loading } from '../shared/loading';
 import { PlaceMap } from './place-map';
 import { PlaceReviews } from './place-reviews';
+import { ItineraryForm } from './itinerary-form';
 
 @Component({
   selector: 'app-place-detail',
-  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews],
+  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews, ItineraryForm],
   templateUrl: './place-detail.html',
   styleUrl: './place-detail.scss',
 })
