@@ -4,6 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'client/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'client/**'
 
 concurrency:
   group: deploy-production
