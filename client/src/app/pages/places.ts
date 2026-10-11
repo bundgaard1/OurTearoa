@@ -61,6 +61,10 @@ export class PlacesPage {
     this.load();
   }
 
+  replacePlace(place: Place): void {
+    this.places.update((places) => places.map((p) => (p.id === place.id ? place : p)));
+  }
+
   clearFilters(): void {
     this.region.set('');
     this.query.set('');

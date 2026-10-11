@@ -74,7 +74,20 @@ describe('PlaceDetailPage content', () => {
     expect(el.querySelector('.coords')).toBeNull();
     expect(el.querySelector('app-place-map')).toBeNull();
     expect(el.querySelector('img')).toBeNull();
+    expect(el.querySelector('.no-photo')?.textContent).toBe('No photo yet.');
     expect(el.querySelector('.meta')?.textContent).not.toContain('·');
+  });
+
+  it('shows the uploaded image without a reload', () => {
+    const fixture = setup();
+    http.expectOne(`${environment.apiUrl}/places/p1`).flush({ ...full, imageUrl: null });
+    fixture.detectChanges();
+    http.expectOne(`${environment.apiUrl}/places/p1/reviews`).flush([]);
+    fixture.componentInstance.imageUploaded({ ...full, imageUrl: 'https://s3.example/p1.png' });
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('img')?.getAttribute('src')).toBe('https://s3.example/p1.png');
+    expect(el.querySelector('.no-photo')).toBeNull();
   });
 
   it('shows the error state on a 404', () => {
