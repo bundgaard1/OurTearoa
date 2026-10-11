@@ -138,7 +138,7 @@ publicly.
 | R-4 | The database is reachable from the internet | Medium | High | Security group rules, `sslmode=verify-full`, strong password | Tightening open (#15) |
 | R-5 | A broken change is deployed | Medium | Medium | Client tests run before every deploy; serialised deploys; `migrate deploy` only | Mitigated (#101, #105) |
 | R-6 | Cost overrun or credits expire before marking ends | Low | High: account could be suspended | Smallest sizes, no idle extras, cost estimate in 6.6 | Budget alert recommended |
-| R-7 | Data loss in the database | Low | High | RDS automated backups and point-in-time restore | Retention to be confirmed (#15) |
+| R-7 | Data loss in the database | Low | High | RDS automated backups and point-in-time restore | Retention is only 1 day; 7 days recommended (6.3) |
 | R-8 | The image upload is abused | Low | Low | Login required; presigned policy limits key, type and size to 5 MB | No rate limit yet |
 | R-9 | Only one team member can change AWS | Medium | Medium | Setup documented; IAM access for both members | Open (#17) |
 | R-10 | A free external service fails (DuckDNS, Let's Encrypt) | Low | Medium | Certbot renews certificates; the domain could move to Route 53 | Accepted |
@@ -225,9 +225,9 @@ TLS-verified against the AWS global CA bundle.
 | Service | Purpose | Notes |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
-| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); [storage, backup retention to be confirmed from the AWS console] |
+| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); Single-AZ, storage encryption enabled, automated backups with 1-day retention; [allocated storage to be confirmed] |
 | S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload working since #106, and live `imageUrl` values point to this bucket |
-| DuckDNS | Public DNS for `ourtearoa.duckdns.org` | [update mechanism] |
+| DuckDNS | Public DNS for `ourtearoa.duckdns.org` | Free; the record points to the Elastic IP `54.252.56.209`, which stays the same across stop and start, so no dynamic update client is needed. Route 53 was not used because it is a paid service |
 
 **Access control.** The EC2 instance serves 443, and 80 only to redirect to HTTPS.
 SSH on 22 is used for administration and by the deploy workflow. RDS carries its
@@ -535,8 +535,8 @@ user's entries ordered by start date.
 ## 6. Cloud Engineering Quality
 
 This section evaluates the deployed system against the quality attributes in
-section 2.5 and states the trade-offs made. Values in square brackets still need
-to be confirmed from the AWS console (#15, #17).
+section 2.5 and states the trade-offs made. Console values were confirmed by
+@bundgaard1 in #109; the few left in square brackets are still open.
 
 ### 6.1 Security
 
@@ -544,7 +544,7 @@ to be confirmed from the AWS console (#15, #17).
 | :--- | :--- | :--- |
 | Network | EC2 security group opens 443, 80 (redirect only) and 22; RDS allows 5432 from the EC2 security group | Developer `/32` rules require RDS "Publicly accessible = Yes"; remove them and use an SSH tunnel or bastion (#15). SSH could be limited to known addresses or replaced by SSM Session Manager |
 | Data in transit | HTTPS with Let's Encrypt, HTTP redirected with `301`; RDS over TLS with `sslmode=verify-full`; S3 over HTTPS | Add HSTS in Nginx |
-| Data at rest | Passwords stored as bcrypt hashes (cost 10); images in S3 | [RDS storage encryption to be confirmed]; S3 encrypts new objects by default (SSE-S3) |
+| Data at rest | Passwords stored as bcrypt hashes (cost 10); images in S3 | RDS storage encryption is enabled; S3 encrypts new objects by default (SSE-S3) |
 | Identity and access | EC2 uses the IAM role `ourtearoa-ec2-s3-role` for S3, so no access keys exist on the server; presigned POST limits key, type, size and lifetime | Scope the role to the bucket and the needed actions only; give each team member their own IAM user with MFA (#17) |
 | Application | JWT (7 days) for every write; ownership checked on every user-owned row (`404` for others); input validated in controllers; Prisma parameterises all queries | CORS is open to any origin; no rate limiting on login or upload; no security headers (helmet); the token is in `localStorage`, which is exposed to XSS. Any signed-in user may edit places (US-15 partial) |
 | Secrets | `.env` and keys are gitignored; deploy credentials are GitHub Actions secrets; only `.env.example` and the public RDS CA bundle are committed | Repository and history audit open (#10); AWS Secrets Manager or SSM Parameter Store would replace the `.env` on the instance |
@@ -563,8 +563,8 @@ and the API. Reliability comes from restarting rather than redundancy:
   reboot. Nginx is a systemd service as well.
 - The swap file protects the API from the OOM killer on 1 GB RAM (R-2).
 - RDS is a managed service; AWS replaces failed hardware and applies patches in the
-  maintenance window. The instance is a `db.t4g.micro` in `ap-southeast-2a`; [Single-AZ
-  assumed, Multi-AZ setting to be confirmed].
+  maintenance window. The instance is a Single-AZ `db.t4g.micro` in `ap-southeast-2a`
+  (Multi-AZ is off).
 - `GET /api/health` checks the database with a timeout (`HEALTH_DB_TIMEOUT_MS`,
   default 3000 ms) and returns `503` with a `reason`, so a failure can be told apart
   from a network or credential problem (section 3.6).
@@ -590,11 +590,11 @@ outages outside marking sessions do not matter.
 
 | Component | Where the state lives | Backup | Recovery |
 | :--- | :--- | :--- | :--- |
-| Application data | RDS | Automated daily snapshots and point-in-time restore [retention to be confirmed]; manual snapshot before risky migrations | Restore to a new instance and update `DATABASE_URL` |
+| Application data | RDS | Automated daily snapshots and point-in-time restore, retention 1 day; manual snapshot before risky migrations | Restore to a new instance and update `DATABASE_URL` |
 | Schema | Git (`backend/prisma/migrations/`) | Every migration is versioned | `prisma migrate deploy` |
-| Images | S3 | 99.999999999% designed durability, stored across several AZs | Versioning [not enabled]; enabling it would protect against accidental deletes and overwrites |
+| Images | S3 | 99.999999999% designed durability, stored across several AZs | Versioning is disabled; enabling it would protect against accidental deletes and overwrites |
 | Code and client | GitHub | Every merged PR | The deploy workflow rebuilds and redeploys |
-| EC2 instance | None (stateless) | Setup documented in `docs/cloud-ec2-setup.md` | Launch a new instance, follow the guide, update the GitHub secrets and DuckDNS |
+| EC2 instance | None (stateless) | Setup documented in `docs/cloud-ec2-setup.md` | Launch a new instance, follow the guide, move the Elastic IP to it, so DNS and the deploy host secret stay unchanged |
 
 **Targets (estimates, not tested).** RPO: about 5 minutes for the database, the
 interval of RDS transaction log backups; zero for code. RTO: about 1 hour to rebuild
@@ -602,6 +602,11 @@ the EC2 instance by hand and 30 to 60 minutes for an RDS point-in-time restore.
 Everything runs in `ap-southeast-2`, so a region-wide outage is not covered;
 cross-region snapshot copies and S3 replication would be the next step if that
 mattered. A restore has not been rehearsed yet.
+
+With a retention of 1 day, point-in-time restore only reaches back 24 hours: a
+bad migration or deletion noticed later cannot be undone. Raising the retention to
+7 days is the cheapest improvement here, since backup storage up to the database
+size is free.
 
 Risk: `backend/prisma/seed.ts` deletes all rows before seeding and must never be run
 against RDS.
@@ -663,16 +668,17 @@ public AWS price lists in October 2026; estimates, not billing data):
 | Item | Estimate (USD/month) | Note |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | about 9.93 | $0.0136 per hour |
-| EBS root volume | about 1 | Small gp3 volume; [size to be confirmed] |
+| EBS root volume | about 2 | 20 GB at about $0.10 per GB-month for gp3; [volume type assumed] |
 | RDS PostgreSQL | about 11.68 | `db.t4g.micro` (confirmed, `docs/screenshots/1-03-rds-running.png`) at $0.016 per hour, assuming Single-AZ; storage extra, backup storage up to the database size free |
-| Public IPv4 address | about 3.65 | $0.005 per hour for public IPv4 addresses |
+| Elastic IP | about 3.65 | $0.005 per hour; AWS charges every public IPv4 address, including an attached Elastic IP |
 | S3 | under 0.10 | A few MB of images and low request volume |
 | Data transfer | close to 0 | Low traffic |
 | DuckDNS, Let's Encrypt | 0 | Free services |
 | GitHub Actions | 0 | Free for public repositories |
-| **Total** | **about 26** | Before free tier or credits |
+| **Total** | **about 27** | Before free tier or credits |
 
-Whether this is covered depends on the account type [to be confirmed]: accounts
+The account is on the AWS free tier (confirmed by @bundgaard1). How much is covered
+depends on which kind [legacy or credit-based, to be confirmed]: accounts
 created before 15 July 2025 have the 12-month free tier (750 hours of a micro
 instance for EC2 and for RDS), while newer accounts get credits of up to $200 and,
 on the free plan, are closed when the credits run out or after six months (R-6).
@@ -711,7 +717,8 @@ resources after marking ends.
 3. Application hardening: restricted CORS origin, helmet, rate limiting on login and
    upload, HSTS.
 4. Run the tests on every pull request, not only before deploy.
-5. S3 versioning and deleting replaced images; a rehearsed RDS restore.
+5. RDS backup retention from 1 to 7 days, S3 versioning, deleting replaced images,
+   and a rehearsed RDS restore.
 6. CloudFront for the client and images.
 7. ALB with an Auto Scaling Group across two AZs and RDS Multi-AZ, when traffic or
    availability needs justify the cost.
