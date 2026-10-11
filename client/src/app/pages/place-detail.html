@@ -18,6 +18,7 @@
       <p class="coords">Coordinates: {{ p.latitude }}, {{ p.longitude }}</p>
       <app-place-map [latitude]="p.latitude" [longitude]="p.longitude" [name]="p.name" />
     }
+    <section class="plan"><h3>Plan a visit</h3><app-itinerary-form [placeId]="p.id" /></section>
     <app-place-reviews [placeId]="p.id" />
   }
 </aside>
