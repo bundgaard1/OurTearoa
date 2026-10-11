@@ -183,9 +183,14 @@ Every push to `main` triggers `.github/workflows/deploy.yaml`, which:
    deliberately — the `t3.micro` does not have the memory to build the client.
 2. Rsyncs the compiled bundle to the Nginx web root at `/var/www/ourtearoa/`.
 3. SSHes into the instance, `git pull`s the backend, installs production
-   dependencies, and runs `prisma migrate deploy`.
+   dependencies, regenerates the Prisma client (`backend/generated` is not
+   committed), and runs `prisma migrate deploy`. Both use `npx --no`, so the
+   locked Prisma version is used and is never silently downloaded.
 4. Reloads the API through PM2 and restores the SELinux `httpd_sys_content_t`
    context on the web root so Nginx can read the new files.
+
+A `concurrency` group makes deploys run one at a time, because two overlapping
+runs on the same instance delete each other's `node_modules` during `npm ci`.
 
 Migrations run as `migrate deploy` — never `migrate dev` — so production schema
 changes are applied, not regenerated. Secrets (the SSH key, host, user) are held in
