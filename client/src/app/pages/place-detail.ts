@@ -12,16 +12,19 @@ import { FavoriteToggle } from './favorite-toggle';
 import { PlaceMap } from './place-map';
 import { PlaceReviews } from './place-reviews';
 import { ItineraryForm } from './itinerary-form';
+import { PlaceImageUpload } from './place-image-upload';
+import { PlacesPage } from './places';
 
 @Component({
   selector: 'app-place-detail',
-  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews, FavoriteToggle, ItineraryForm],
+  imports: [RouterLink, Loading, ErrorAlert, PlaceMap, PlaceReviews, FavoriteToggle, ItineraryForm, PlaceImageUpload],
   templateUrl: './place-detail.html',
   styleUrl: './place-detail.scss',
 })
 export class PlaceDetailPage {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly catalogue = inject(PlacesPage, { optional: true });
   private request?: Subscription;
   private id = '';
 
@@ -51,5 +54,10 @@ export class PlaceDetailPage {
         this.loading.set(false);
       },
     });
+  }
+
+  imageUploaded(place: Place): void {
+    this.place.set(place);
+    this.catalogue?.replacePlace(place);
   }
 }

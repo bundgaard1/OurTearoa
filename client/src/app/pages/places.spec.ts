@@ -64,6 +64,17 @@ describe('PlacesPage', () => {
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('img').length).toBe(1);
   });
 
+  it('replaces a card when a place image is uploaded', () => {
+    const fixture = setup();
+    http.expectOne(`${environment.apiUrl}/places`).flush([place({}), place({ id: 'p2', name: 'Rotorua' })]);
+    fixture.detectChanges();
+    fixture.componentInstance.replacePlace(place({ imageUrl: 'https://s3.example/p1.png' }));
+    fixture.detectChanges();
+    const imgs = (fixture.nativeElement as HTMLElement).querySelectorAll('img');
+    expect(imgs.length).toBe(1);
+    expect(imgs[0].getAttribute('src')).toBe('https://s3.example/p1.png');
+  });
+
   it('shows the empty state for an empty list', () => {
     const fixture = setup();
     http.expectOne(`${environment.apiUrl}/places`).flush([]);
