@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 685" width="100%" height="100%">
+  <defs>
+    <!-- Brand Gradients & Styles -->
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#008080"/>
+      <stop offset="100%" stop-color="#0e6b66"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#184b2c"/>
+      <stop offset="100%" stop-color="#0c311c"/>
+    </linearGradient>
+
+    <!-- Map Pin Template -->
+    <g id="pin">
+      <path d="M0,0 C-7,-10 -11,-15 -11,-22 C-11,-30 -5,-35 0,-35 C5,-35 11,-30 11,-22 C11,-15 7,-10 0,0 Z" fill="#008080"/>
+      <circle cx="0" cy="-22" r="4.5" fill="#ffffff"/>
+    </g>
+
+    <!-- Hiker Silhouette Template -->
+    <g id="hiker">
+      <circle cx="0" cy="-26" r="3.2"/>
+      <path d="M-4,-21 C-2,-23 2,-23 4,-21 L5,-10 L2,-10 L1,0 L-2,0 L-2,-9 L-4,-11 Z"/>
+      <!-- Backpack -->
+      <rect x="-6" y="-20" width="3.5" height="8" rx="1.5"/>
+      <!-- Walking Pole -->
+      <line x1="5" y1="-15" x2="7" y2="0" stroke-width="1"/>
+    </g>
+  </defs>
+
+  <!-- Central Graphic Group (Tightly framed, centered at x=240, y=240) -->
+  <g transform="translate(240, 240)">
+    <!-- Outer Decorative Pattern Rings -->
+    <circle cx="0" cy="0" r="235" fill="none" stroke="#184b2c" stroke-width="6"/>
+    <circle cx="0" cy="0" r="215" fill="none" stroke="#008080" stroke-width="3" stroke-dasharray="8,6"/>
+    <circle cx="0" cy="0" r="195" fill="none" stroke="#184b2c" stroke-width="10" stroke-dasharray="14,9" opacity="0.85"/>
+    <circle cx="0" cy="0" r="182" fill="none" stroke="#008080" stroke-width="2"/>
+
+    <!-- Dynamic Koru Spiral (Top Left Crest) -->
+    <path d="M-80,-140 C-30,-220 50,-190 30,-130 C15,-85 -45,-85 -40,-125 C-36,-150 -10,-150 -12,-132 C-14,-120 -28,-120 -26,-128"
+          fill="none" stroke="#008080" stroke-width="16" stroke-linecap="round"/>
+    <path d="M-55,-135 C-20,-190 35,-170 20,-125 C10,-95 -30,-95 -28,-120"
+          fill="none" stroke="#184b2c" stroke-width="8" stroke-linecap="round"/>
+
+    <!-- New Zealand Landmass Silhouettes -->
+    <!-- North Island (Te Ika-a-Māui) -->
+    <path d="M25,-170 C45,-160 70,-115 55,-70 C75,-60 85,-40 65,-10 C50,15 35,-5 20,-20 C5,-35 15,-80 5,-105 C-5,-130 10,-165 25,-170 Z" 
+          fill="url(#greenGrad)"/>
+    <!-- North Island Internal Koru Etch -->
+    <path d="M40,-95 C55,-85 50,-65 38,-70 C30,-75 35,-85 40,-82" 
+          fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- South Island (Te Wai Pounamu) -->
+    <path d="M-15,10 C15,20 10,40 -15,75 C-40,110 -75,135 -110,165 C-130,175 -140,160 -125,140 C-100,105 -65,70 -40,35 C-25,15 -25,5 -15,10 Z" 
+          fill="url(#greenGrad)"/>
+    <!-- South Island Internal Koru Etch -->
+    <path d="M-75,115 C-60,100 -70,85 -85,90 C-95,95 -90,108 -80,105" 
+          fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+
+    <!-- Stewart Island (Rakiura) -->
+    <ellipse cx="-128" cy="182" rx="7" ry="5" fill="url(#greenGrad)" transform="rotate(-25 -128 182)"/>
+
+    <!-- Journey Path (Dotted Waypoint Trails) -->
+    <path d="M-125,95 Q-90,-10 -55,-40 T30,-120" 
+          fill="none" stroke="#184b2c" stroke-width="3" stroke-dasharray="5,6"/>
+    <path d="M-10,120 Q35,130 65,85 T40,-20" 
+          fill="none" stroke="#008080" stroke-width="2.5" stroke-dasharray="4,5"/>
+
+    <!-- Map Pins (Waypoints) -->
+    <use href="#pin" x="-115" y="90" transform="scale(0.85)"/>
+    <use href="#pin" x="65" y="80" transform="scale(0.85)"/>
+    <use href="#pin" x="12" y="-120" transform="scale(0.85)"/>
+
+    <!-- Hiking Group Silhouettes -->
+    <g fill="#184b2c" stroke="#184b2c">
+      <use href="#hiker" x="-105" y="-35" transform="scale(1.2)"/>
+      <use href="#hiker" x="-85" y="-45" fill="#008080" stroke="#008080" transform="scale(1.35)"/>
+      <use href="#hiker" x="-62" y="-40" transform="scale(1.15)"/>
+    </g>
+  </g>
+
+  <!-- Brand Typography -->
+  <g text-anchor="middle">
+    <!-- Main Wordmark -->
+    <text x="240" y="585" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif" font-weight="800" font-size="82" letter-spacing="-1.5">
+      <tspan fill="#008080">Our</tspan><tspan fill="#184b2c">Tearoa</tspan>
+    </text>
+
+    <!-- Tagline -->
+    <text x="240" y="640" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, sans-serif" font-weight="700" font-size="22" fill="#008080" letter-spacing="7">
+      SHARE YOUR JOURNEY
+    </text>
+  </g>
+</svg>

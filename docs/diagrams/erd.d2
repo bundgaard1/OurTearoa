@@ -1,0 +1,89 @@
+direction: right
+
+# Entity: users
+users: {
+  shape: sql_table
+  id: "String [PK, UUID]"
+  email: "String [UQ]"
+  password: "String"
+  name: "VarChar(100)"
+  created_at: "DateTime"
+  updated_at: "DateTime"
+}
+
+# Entity: places
+places: {
+  shape: sql_table
+  id: "String [PK, UUID]"
+  name: "VarChar(200)"
+  region: "VarChar(100)"
+  description: "String?"
+  latitude: "Float?"
+  longitude: "Float?"
+  type: "String?"
+  image_url: "String?"
+  created_at: "DateTime"
+  updated_at: "DateTime"
+}
+
+# Entity: reviews
+reviews: {
+  shape: sql_table
+  id: "String [PK, UUID]"
+  place_id: "String [FK -> places.id]"
+  user_id: "String [FK -> users.id]"
+  rating: "SmallInt"
+  comment: "String?"
+  created_at: "DateTime"
+  updated_at: "DateTime"
+}
+
+# Entity: favorites
+favorites: {
+  shape: sql_table
+  id: "String [PK, UUID]"
+  place_id: "String [FK -> places.id]"
+  user_id: "String [FK -> users.id]"
+  created_at: "DateTime"
+}
+
+# Entity: itinerary_entries
+itinerary_entries: {
+  shape: sql_table
+  id: "String [PK, UUID]"
+  place_id: "String [FK -> places.id]"
+  user_id: "String [FK -> users.id]"
+  start_date: "DateTime"
+  end_date: "DateTime"
+  note: "String?"
+  created_at: "DateTime"
+  updated_at: "DateTime"
+}
+
+# Relationships (with onDelete: Cascade notation)
+users -> reviews: "1 : N (Cascade)" {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+places -> reviews: "1 : N (Cascade)" {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+
+users -> favorites: "1 : N (Cascade)" {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+places -> favorites: "1 : N (Cascade)" {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+
+users -> itinerary_entries: "1 : N (Cascade)" {
+  source-arrowhead: 1
+  target-arrowhead: *
+}
+places -> itinerary_entries: "1 : N (Cascade)" {
+  source-arrowhead: 1
+  target-arrowhead: *
+}

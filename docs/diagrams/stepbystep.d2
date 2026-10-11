@@ -1,0 +1,21 @@
+shape: sequence_diagram
+
+browser: User Browser (Angular 22 SPA)
+nginx: Nginx Reverse Proxy (Port 443)
+express: Express 5 API (127.0.0.1:3000)
+prisma: Prisma 7 ORM
+rds: AWS RDS PostgreSQL 16 (Port 5432)
+s3: AWS S3 (ourtearoa-storage)
+
+browser -> nginx: "1. GET /api/places/:id (HTTPS)"
+nginx -> express: "2. Reverse Proxy to 127.0.0.1:3000"
+express -> express: "3. Validate JWT / Run Middleware"
+express -> prisma: "4. Invoke places.findUnique()"
+prisma -> rds: "5. Parameterized SQL over TLS (Port 5432)"
+rds -> prisma: "6. Return Database Record"
+prisma -> express: "7. Return Typed Entity Object"
+express -> express: "8. Construct S3 Asset URLs (/public/*)"
+express -> nginx: "9. Return HTTP 200 JSON Payload"
+nginx -> browser: "10. Deliver Response to Client"
+browser -> browser: "11. Update Reactive Signal State"
+browser -> s3: "12. GET Image Assets (Direct S3 Fetch)"
