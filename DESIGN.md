@@ -28,31 +28,31 @@ document traces back to one of the stories below.
 
 | ID | User story | Acceptance criteria |
 | :--- | :--- | :--- |
-| US-01 | As a visitor, I want to browse a list of New Zealand places so that I can discover destinations without an account. | [ ] |
-| US-02 | As a visitor, I want to filter and search places by region so that I can narrow down to the part of the country I care about. | [ ] |
-| US-03 | As a visitor, I want to open a place detail page showing name, region, description, photo and map coordinates so that I can decide whether to visit. | [ ] |
-| US-04 | As a visitor, I want to read reviews and ratings left by other travellers so that I can judge a place from other people's experiences. | [ ] |
+| US-01 | As a visitor, I want to browse a list of New Zealand places so that I can discover destinations without an account. | `GET /places` is public; `/places` lists every place as a card without login. Done. |
+| US-02 | As a visitor, I want to filter and search places by region so that I can narrow down to the part of the country I care about. | Region dropdown and name search on `/places`, backed by `?region=` (exact, case-insensitive) and `?q=` (name contains). Done. |
+| US-03 | As a visitor, I want to open a place detail page showing name, region, description, photo and map coordinates so that I can decide whether to visit. | `/places/:id` shows name, region, type, description, the S3 photo when `imageUrl` is set and a Leaflet map when both coordinates are set. Done. |
+| US-04 | As a visitor, I want to read reviews and ratings left by other travellers so that I can judge a place from other people's experiences. | `GET /places/:id/reviews` is public; the detail panel lists rating, comment and author name. Done. |
 
 ### 2.2 As a registered user (traveller)
 
 | ID | User story | Acceptance criteria |
 | :--- | :--- | :--- |
-| US-05 | As a visitor, I want to register an account so that I can save favourites and plan an itinerary. | [ ] |
-| US-06 | As a returning user, I want to log in so that I can access my saved data on any device. | [ ] |
-| US-07 | As a registered user, I want to favourite a place so that I can build a shortlist. | [ ] |
-| US-08 | As a registered user, I want to view and remove my favourites so that my shortlist stays current. | [ ] |
-| US-09 | As a registered user, I want to write a review and star rating for a place I have visited so that I can share my experience. | [ ] |
-| US-10 | As a registered user, I want to edit or delete my own review so that I can correct it later. | [ ] |
-| US-11 | As a registered user, I want to add places to an itinerary with start and end dates so that I can organise a trip. | [ ] |
-| US-12 | As a registered user, I want to view my itinerary ordered by date so that I can plan the sequence of my trip. | [ ] |
-| US-13 | As a registered user, I want to edit or remove itinerary entries so that my plan can change as my trip does. | [ ] |
+| US-05 | As a visitor, I want to register an account so that I can save favourites and plan an itinerary. | `POST /auth/register` with email, name (max 100) and password (min 8); `409` on a duplicate email; the user is signed in afterwards. Done. |
+| US-06 | As a returning user, I want to log in so that I can access my saved data on any device. | `POST /auth/login` returns a JWT valid for 7 days; wrong credentials give `401`; data is server-side, so it is the same on any device. Done. |
+| US-07 | As a registered user, I want to favourite a place so that I can build a shortlist. | Heart toggle on the detail panel and on every card; `POST /favorites`, `409` on a duplicate. Done. |
+| US-08 | As a registered user, I want to view and remove my favourites so that my shortlist stays current. | `/favorites` lists saved places with remove (`DELETE /favorites/:id`). Done. |
+| US-09 | As a registered user, I want to write a review and star rating for a place I have visited so that I can share my experience. | Review form with a 1-5 rating and optional comment (`POST /reviews`, `400` outside 1-5). Done. |
+| US-10 | As a registered user, I want to edit or delete my own review so that I can correct it later. | Edit and delete are offered only on the user's own reviews; the API answers `404` for anyone else's. Done. |
+| US-11 | As a registered user, I want to add places to an itinerary with start and end dates so that I can organise a trip. | "Plan a visit" on the detail panel with start date, end date and note; `400` if the end is before the start. Done. |
+| US-12 | As a registered user, I want to view my itinerary ordered by date so that I can plan the sequence of my trip. | `/itinerary` lists entries ordered by start date (`GET /itinerary`, indexed on user and start date). Done. |
+| US-13 | As a registered user, I want to edit or remove itinerary entries so that my plan can change as my trip does. | Edit and remove on `/itinerary` (`PUT`/`DELETE /itinerary/:id`, own entries only). Done. |
 
 ### 2.3 As a contributor (This is a later-stage feature.)
 
 | ID | User story | Acceptance criteria |
 | :--- | :--- | :--- |
-| US-14 | As a contributor, I want to add a new place with its details and image so that the catalogue grows beyond the seed data. | [ ] |
-| US-15 | As a contributor, I want to edit or remove a place I have added so that catalogue data stays accurate. | [ ] |
+| US-14 | As a contributor, I want to add a new place with its details and image so that the catalogue grows beyond the seed data. | API only: `POST /places` and the S3 image upload exist; no "add place" screen. Partial. |
+| US-15 | As a contributor, I want to edit or remove a place I have added so that catalogue data stays accurate. | API only: `PUT`/`DELETE /places/:id` exist, but places have no owner field, so any signed-in user can change any place. Partial. |
 
 > US-16 (contributor image upload to cloud storage) was removed as a separate story.
 > Place images are covered by the S3 presigned direct upload (#71, #73, #87): any
@@ -64,14 +64,115 @@ document traces back to one of the stories below.
 
 | ID | User story | Acceptance criteria |
 | :--- | :--- | :--- |
-| US-17 | As an evaluator, I want a documented set of RESTful endpoints that I can call directly, so that the API can be tested independently of the UI. | [ ] |
-| US-18 | As an evaluator, I want a health endpoint that reports both the API and the database connection, so that I can confirm the whole stack is live. | [ ] |
-| US-19 | As a user on a slow or unreliable connection, I want clear loading and error states so that the interface never appears frozen. | [ ] |
-| US-20 | As a user, I want the app served over HTTPS on a memorable domain so that it is trustworthy and easy to reach. | [ ] |
+| US-17 | As an evaluator, I want a documented set of RESTful endpoints that I can call directly, so that the API can be tested independently of the UI. | All endpoints listed in section 4.3; `scripts/api-smoke-test.sh` calls them without the UI (45 checks). Done. |
+| US-18 | As an evaluator, I want a health endpoint that reports both the API and the database connection, so that I can confirm the whole stack is live. | `GET /api/health` runs `SELECT 1` on RDS and returns `200` with `{"status":"UP","database":"UP"}` and `latencyMs`, or `503` with a `reason`. Done. |
+| US-19 | As a user on a slow or unreliable connection, I want clear loading and error states so that the interface never appears frozen. | Every data screen has loading, empty and error states, with a retry button on errors. Done. |
+| US-20 | As a user, I want the app served over HTTPS on a memorable domain so that it is trustworthy and easy to reach. | `https://ourtearoa.duckdns.org` with a Let's Encrypt certificate; HTTP answers `301` to HTTPS. Done. |
+
+### 2.5 Requirements analysis
+
+**Problem and business context.** Visitors planning a trip around New Zealand
+gather destinations, opinions and dates from many separate sources. OurTearoa
+puts them in one place: browse a catalogue of places, read and write reviews,
+keep a shortlist and turn it into a dated itinerary. Browsing is open to
+everyone; anything personal needs an account. For the course, the same product
+has to show a working three-tier cloud deployment that markers can reach and test
+publicly.
+
+**Functional requirements** (grouped from the user stories above)
+
+| ID | Requirement | Stories |
+| :--- | :--- | :--- |
+| FR-1 | Public catalogue with region filter, name search and place detail (photo, map) | US-01 to US-03 |
+| FR-2 | Public reviews; signed-in users create, edit and delete their own | US-04, US-09, US-10 |
+| FR-3 | Account registration, login and account deletion | US-05, US-06 |
+| FR-4 | Personal favourites and a dated itinerary | US-07, US-08, US-11 to US-13 |
+| FR-5 | Place images stored in cloud object storage | US-03, US-14 |
+| FR-6 | A documented REST API and health endpoint usable without the client | US-17, US-18 |
+
+**Non-functional requirements**
+
+| ID | Quality | Requirement | How it is met |
+| :--- | :--- | :--- | :--- |
+| NFR-1 | Availability | Reachable at a public URL from submission until marking ends | EC2 + PM2 with systemd restart, managed RDS, health endpoint (section 6.2) |
+| NFR-2 | Security | HTTPS everywhere, hashed passwords, no secrets in Git, least-privilege cloud access | Let's Encrypt, bcrypt, verified TLS to RDS, IAM role for S3 (section 6.1) |
+| NFR-3 | Usability | Never a blank or frozen screen | Loading, empty and error states with retry (US-19) |
+| NFR-4 | Maintainability | Every merge to `main` deployed automatically and repeatably | GitHub Actions with tests, `prisma migrate deploy`, serialised runs (section 3.6) |
+| NFR-5 | Cost | Stay within the student free tier or credits | Smallest instance sizes, single AZ, no load balancer or NAT (section 6.6) |
+| NFR-6 | Testability | API testable independently of the UI | Section 4.3 and `scripts/api-smoke-test.sh` (45 checks) |
+
+**Constraints**
+
+- *Assignment brief (Option B):* three tiers; client and API decoupled by REST;
+  at least 10 REST services including at least 3 `POST`; a cloud database, not a
+  database installed on the VM; assets in cloud object storage; public URLs for
+  client and API; Git collaboration without history rewriting. OurTearoa exposes
+  25 endpoints, 8 of them `POST` (section 4.3), uses RDS and S3, and keeps a linear
+  history of merged PRs.
+- *Team:* two part-time students over one semester. One AWS account, administered
+  by @bundgaard1, so console changes are a bottleneck (#17).
+- *Budget:* free tier or student credits only, which rules out load balancers,
+  Multi-AZ databases and managed container platforms.
+- *Infrastructure:* the 1 GB `t3.micro` cannot build the Angular client and must not
+  carry image traffic. Both shaped the design: the client is built in CI (3.6) and
+  images go straight to S3 (3.4).
+
+**Assumptions**
+
+| Assumption | Justification | If it turns out wrong |
+| :--- | :--- | :--- |
+| Traffic is low: the team, markers and a few test users | Coursework, no marketing; 8 seeded places | Scale out as described in section 6.4 |
+| Short outages outside marking sessions are acceptable | No SLA; availability matters during the evaluation window | Add monitoring and a second instance (6.2) |
+| Users are mainly in New Zealand and Australia | Product scope | `ap-southeast-2` (Sydney) keeps latency low; a CDN would serve other regions |
+| Any signed-in user may edit places and add images | Community-curated catalogue; no moderation in scope | Add an owner or admin role (US-15 is partial for this reason) |
+| Stored personal data is minimal (name, email, password hash) | No payments or location tracking | Revisit data protection if more personal data is added |
+| Place images may be public | They are catalogue content | Use private objects with presigned GET URLs |
+
+**Risks**
+
+| ID | Risk | Likelihood | Impact | Mitigation | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| R-1 | The single EC2 instance fails or is replaced | Low | High: client and API down | Stateless API, data in RDS and S3, setup documented in `docs/`, deploy fully automated | Accepted for cost |
+| R-2 | The API runs out of memory on 1 GB RAM | Medium | Medium | Swap file, client built in CI, PM2 restarts the process | Mitigated |
+| R-3 | Secrets leak through Git or logs | Low | High | `.env` and keys gitignored, GitHub Actions secrets, IAM role instead of S3 keys | Audit open (#10) |
+| R-4 | The database is reachable from the internet | Medium | High | Security group rules, `sslmode=verify-full`, strong password | Tightening open (#15) |
+| R-5 | A broken change is deployed | Medium | Medium | Client tests run before every deploy; serialised deploys; `migrate deploy` only | Mitigated (#101, #105) |
+| R-6 | Cost overrun or credits expire before marking ends | Low | High: account could be suspended | Smallest sizes, no idle extras, cost estimate in 6.6 | Budget alert recommended |
+| R-7 | Data loss in the database | Low | High | RDS automated backups and point-in-time restore | Retention is only 1 day; 7 days recommended (6.3) |
+| R-8 | The image upload is abused | Low | Low | Login required; presigned policy limits key, type and size to 5 MB | No rate limit yet |
+| R-9 | Only one team member can change AWS | Medium | Medium | Setup documented; IAM access for both members | Open (#17) |
+| R-10 | A free external service fails (DuckDNS, Let's Encrypt) | Low | Medium | Certbot renews certificates; the domain could move to Route 53 | Accepted |
+
+**Cloud opportunities used**
+
+- *Managed database (RDS):* backups, patching and storage are AWS's job, not the team's.
+- *Object storage with presigned uploads (S3):* durable image storage outside the
+  VM; uploads bypass the API host completely.
+- *Identity (IAM role):* the API gets short-lived S3 credentials from the instance
+  role, with no access keys on disk.
+- *Elastic CI capacity (GitHub Actions):* builds and tests run on hosted runners,
+  so the production VM stays small.
+- *Pay as you go:* the system runs on the smallest sizes now and has a clear path
+  to scale (section 6.4) when needed.
+
+**From business needs to technical objectives**
+
+| Business need | Technical objective | Verified by |
+| :--- | :--- | :--- |
+| Anyone can explore places | Public, read-only endpoints; auth only for writes | Smoke test calls the public endpoints without a token |
+| Travellers keep personal plans | JWT auth; ownership enforced on every user-owned row | Smoke test checks `401` without a token and `404` on other users' data |
+| Trustworthy and easy to reach | HTTPS on a named domain, HTTP redirected | `curl -I http://ourtearoa.duckdns.org` returns `301` |
+| Markers can assess without the UI | Every feature reachable through REST | Section 4.3, smoke test log in `docs/evidence/` |
+| Rich places without overloading the VM | Images in S3 via presigned direct upload | Live `imageUrl` values point to `ourtearoa-storage` |
+| Always reflects the latest code | CI/CD on every merge, tests before deploy | GitHub Actions run history |
+| Stays affordable | Free-tier-sized resources | Section 6.6 estimate |
 
 ---
 
 ## 3. Architecture Design
+
+The requirements this architecture answers are in section 2.5; its security,
+availability, scalability and cost trade-offs are evaluated in section 6.
 
 ### 3.2 Tiers
 
@@ -124,15 +225,17 @@ TLS-verified against the AWS global CA bundle.
 | Service | Purpose | Notes |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
-| RDS PostgreSQL | All application data | `ap-southeast-2` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem`; [instance class, storage, backup retention to be confirmed from the AWS console] |
-| S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload still under investigation in #106 |
-| DuckDNS | Public DNS for `ourtearoa.duckdns.org` | [update mechanism] |
+| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); Single-AZ, storage encryption enabled, automated backups with 1-day retention; [allocated storage to be confirmed] |
+| S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload working since #106, and live `imageUrl` values point to this bucket |
+| DuckDNS | Public DNS for `ourtearoa.duckdns.org` | Free; the record points to the Elastic IP `54.252.56.209`, which stays the same across stop and start, so no dynamic update client is needed. Route 53 was not used because it is a paid service |
 
-**Access control.** The EC2 instance is reachable only on 443 (and 22 for SSH from
-the team's addresses). The database is not public: RDS carries its own inbound rule
-for 5432 scoped to the EC2 security group, so only the API host can open a
-connection. Postgres credentials and the `DATABASE_URL` are supplied by the process
-environment, never committed.
+**Access control.** The EC2 instance serves 443, and 80 only to redirect to HTTPS.
+SSH on 22 is used for administration and by the deploy workflow. RDS carries its
+own inbound rule for 5432 for the EC2 security group. For development,
+`docs/aws-rds-setup.md` also allows individual developer `/32` addresses, which
+needs the instance to be publicly accessible. Removing that access is tracked in
+#15 (see section 6.1). Postgres credentials and the `DATABASE_URL` are supplied by
+the process environment, never committed.
 
 **TLS.** The RDS connection uses `sslmode=verify-full` with `global-bundle.pem`, so
 the certificate is validated rather than merely encrypted.
@@ -426,3 +529,196 @@ user's entries ordered by start date.
   (section 3.4). Replaced images are not yet deleted from the bucket.
 - **Seed data.** `backend/prisma/seed.ts` loads the demo places, a demo user (with a
   hashed password) and sample reviews, favourites and an itinerary entry.
+
+---
+
+## 6. Cloud Engineering Quality
+
+This section evaluates the deployed system against the quality attributes in
+section 2.5 and states the trade-offs made. Console values were confirmed by
+@bundgaard1 in #109; the few left in square brackets are still open.
+
+### 6.1 Security
+
+| Layer | Current controls | Known gaps and next steps |
+| :--- | :--- | :--- |
+| Network | EC2 security group opens 443, 80 (redirect only) and 22; RDS allows 5432 from the EC2 security group | Developer `/32` rules require RDS "Publicly accessible = Yes"; remove them and use an SSH tunnel or bastion (#15). SSH could be limited to known addresses or replaced by SSM Session Manager |
+| Data in transit | HTTPS with Let's Encrypt, HTTP redirected with `301`; RDS over TLS with `sslmode=verify-full`; S3 over HTTPS | Add HSTS in Nginx |
+| Data at rest | Passwords stored as bcrypt hashes (cost 10); images in S3 | RDS storage encryption is enabled; S3 encrypts new objects by default (SSE-S3) |
+| Identity and access | EC2 uses the IAM role `ourtearoa-ec2-s3-role` for S3, so no access keys exist on the server; presigned POST limits key, type, size and lifetime | Scope the role to the bucket and the needed actions only; give each team member their own IAM user with MFA (#17) |
+| Application | JWT (7 days) for every write; ownership checked on every user-owned row (`404` for others); input validated in controllers; Prisma parameterises all queries | CORS is open to any origin; no rate limiting on login or upload; no security headers (helmet); the token is in `localStorage`, which is exposed to XSS. Any signed-in user may edit places (US-15 partial) |
+| Secrets | `.env` and keys are gitignored; deploy credentials are GitHub Actions secrets; only `.env.example` and the public RDS CA bundle are committed | Repository and history audit open (#10); AWS Secrets Manager or SSM Parameter Store would replace the `.env` on the instance |
+| Operating system | Amazon Linux 2023 with SELinux enforcing; Nginx is the only public process, the API listens on `127.0.0.1:3000` | Regular `dnf upgrade` is manual |
+
+Trade-off: the controls above cover the risks of a small public catalogue with
+minimal personal data. Rate limiting, a WAF and a private-subnet database were left
+out to stay within time and the free tier, and are listed in 6.7.
+
+### 6.2 Availability and reliability
+
+**Current design.** A single EC2 instance in one Availability Zone serves the client
+and the API. Reliability comes from restarting rather than redundancy:
+
+- PM2 restarts the API if it crashes, and its systemd unit starts PM2 again after a
+  reboot. Nginx is a systemd service as well.
+- The swap file protects the API from the OOM killer on 1 GB RAM (R-2).
+- RDS is a managed service; AWS replaces failed hardware and applies patches in the
+  maintenance window. The instance is a Single-AZ `db.t4g.micro` in `ap-southeast-2a`
+  (Multi-AZ is off).
+- `GET /api/health` checks the database with a timeout (`HEALTH_DB_TIMEOUT_MS`,
+  default 3000 ms) and returns `503` with a `reason`, so a failure can be told apart
+  from a network or credential problem (section 3.6).
+- Deploys are serialised and tests run first (R-5). PM2 restarts the process, so a
+  deploy causes a downtime of a few seconds.
+
+**Expected availability (estimate).** The instance, its AZ and the database are each
+single points of failure. AWS offers 99.5% for a single EC2 instance and 99.5% for a
+Single-AZ RDS instance; together that is roughly 99% per month, or up to about 7
+hours of possible downtime. That is acceptable under the assumption in 2.5 that short
+outages outside marking sessions do not matter.
+
+**Path to high availability.**
+
+1. CloudWatch alarm or an external uptime check on `/api/health`, and EC2
+   auto-recovery on a failed status check. Low cost, first step.
+2. An Application Load Balancer and an Auto Scaling Group across two AZs, with an
+   AMI or launch template replacing the manual setup. This requires moving TLS from
+   Certbot to ACM on the load balancer and the domain to Route 53.
+3. RDS Multi-AZ for automatic database failover (typically one to two minutes).
+
+### 6.3 Backup and disaster recovery
+
+| Component | Where the state lives | Backup | Recovery |
+| :--- | :--- | :--- | :--- |
+| Application data | RDS | Automated daily snapshots and point-in-time restore, retention 1 day; manual snapshot before risky migrations | Restore to a new instance and update `DATABASE_URL` |
+| Schema | Git (`backend/prisma/migrations/`) | Every migration is versioned | `prisma migrate deploy` |
+| Images | S3 | 99.999999999% designed durability, stored across several AZs | Versioning is disabled; enabling it would protect against accidental deletes and overwrites |
+| Code and client | GitHub | Every merged PR | The deploy workflow rebuilds and redeploys |
+| EC2 instance | None (stateless) | Setup documented in `docs/cloud-ec2-setup.md` | Launch a new instance, follow the guide, move the Elastic IP to it, so DNS and the deploy host secret stay unchanged |
+
+**Targets (estimates, not tested).** RPO: about 5 minutes for the database, the
+interval of RDS transaction log backups; zero for code. RTO: about 1 hour to rebuild
+the EC2 instance by hand and 30 to 60 minutes for an RDS point-in-time restore.
+Everything runs in `ap-southeast-2`, so a region-wide outage is not covered;
+cross-region snapshot copies and S3 replication would be the next step if that
+mattered. A restore has not been rehearsed yet.
+
+With a retention of 1 day, point-in-time restore only reaches back 24 hours: a
+bad migration or deletion noticed later cannot be undone. Raising the retention to
+7 days is the cheapest improvement here, since backup storage up to the database
+size is free.
+
+Risk: `backend/prisma/seed.ts` deletes all rows before seeding and must never be run
+against RDS.
+
+### 6.4 Scalability and elasticity
+
+**What scales well already.**
+
+- The API is stateless: sessions are JWTs, not server memory, so more instances can
+  be added behind a load balancer without sticky sessions.
+- Image bytes go straight between the browser and S3, which scales on its own; the
+  API only signs and records.
+- The client is static files, ready to move to S3 and CloudFront.
+- GitHub Actions provides build capacity on demand, so the production instance does
+  not need to be sized for builds.
+
+**Current limits.** One `t3.micro` (2 vCPU burstable, 1 GB RAM) with no automatic
+scaling. Burstable CPU credits can run out under sustained load. Scaling today means
+manual vertical scaling: stop the instance and change the instance type, with
+downtime. RDS can be resized the same way.
+
+**Scale-out path.**
+
+| Load grows in | Response |
+| :--- | :--- |
+| Static client and images | CloudFront in front of S3 and the SPA; caches at the edge and removes static traffic from the EC2 instance |
+| API requests | ALB and Auto Scaling Group with a target-tracking policy on CPU or request count |
+| Database connections | Limit the Prisma pool per instance, or add RDS Proxy |
+| Database reads | Larger instance class, then a read replica for the public catalogue |
+
+Trade-off: elasticity was not built because the expected load (2.5 assumptions) does
+not need it and an ALB alone would cost more than the rest of the system together
+(6.6). The stateless design keeps the option open.
+
+### 6.5 Performance
+
+- **Region.** Everything runs in `ap-southeast-2` (Sydney), close to the expected
+  users in New Zealand and Australia, and the API and database are in the same
+  region.
+- **Queries.** Region filter and name search are done in the database (`mode:
+  insensitive`), not in the client. Foreign keys used for lookups are indexed
+  (`placeId` on reviews and favourites), and itineraries use the composite index
+  (`userId`, `startDate`) that matches their sort order (section 5).
+- **Images.** Loaded directly from S3, not through Nginx or Node; the 5 MB limit
+  keeps uploads bounded.
+- **Client.** Production build from CI, served as static files by Nginx; the client
+  loads data on demand per page.
+- **Observability.** The health endpoint reports `latencyMs` for the database check.
+
+Not yet done: no CDN or HTTP caching headers, no pagination on `GET /places` (fine
+for the current catalogue size), no load test. Name search with `contains` cannot
+use a normal index; a trigram index would be needed for a large catalogue.
+
+### 6.6 Cost optimisation
+
+**Monthly estimate** (on-demand prices for `ap-southeast-2`, 730 hours, taken from
+public AWS price lists in October 2026; estimates, not billing data):
+
+| Item | Estimate (USD/month) | Note |
+| :--- | :--- | :--- |
+| EC2 `t3.micro` | about 9.93 | $0.0136 per hour |
+| EBS root volume | about 2 | 20 GB at about $0.10 per GB-month for gp3; [volume type assumed] |
+| RDS PostgreSQL | about 11.68 | `db.t4g.micro` (confirmed, `docs/screenshots/1-03-rds-running.png`) at $0.016 per hour, assuming Single-AZ; storage extra, backup storage up to the database size free |
+| Elastic IP | about 3.65 | $0.005 per hour; AWS charges every public IPv4 address, including an attached Elastic IP |
+| S3 | under 0.10 | A few MB of images and low request volume |
+| Data transfer | close to 0 | Low traffic |
+| DuckDNS, Let's Encrypt | 0 | Free services |
+| GitHub Actions | 0 | Free for public repositories |
+| **Total** | **about 27** | Before free tier or credits |
+
+The account is on the AWS free tier (confirmed by @bundgaard1). How much is covered
+depends on which kind [legacy or credit-based, to be confirmed]: accounts
+created before 15 July 2025 have the 12-month free tier (750 hours of a micro
+instance for EC2 and for RDS), while newer accounts get credits of up to $200 and,
+on the free plan, are closed when the credits run out or after six months (R-6).
+
+**Decisions taken for cost.**
+
+- Smallest instance sizes; the client build moved to CI so the instance can stay at
+  1 GB.
+- No ALB, NAT gateway, Multi-AZ database or CloudFront; each would add a fixed
+  monthly cost larger than the current need.
+- Images in S3 rather than larger EBS volumes or database rows.
+- Free DNS and certificates.
+
+**Recommended.** An AWS Budgets alert at a small threshold (for example $10), deleting
+replaced images or adding an S3 lifecycle rule, and stopping or deleting all
+resources after marking ends.
+
+### 6.7 Trade-off summary and future improvements
+
+| Decision | Benefit | Cost or risk accepted |
+| :--- | :--- | :--- |
+| Single EC2 instance, no load balancer | Cheapest, simple to operate | Single point of failure, no automatic scaling (6.2, 6.4) |
+| Managed RDS instead of Postgres on the VM | Backups, patching, required by the brief | Higher cost than self-hosting |
+| Public RDS endpoint for development | Developers can run migrations and inspect data directly | Larger attack surface until #15 is done |
+| Client built in CI | Production VM stays small | Deploy depends on GitHub Actions |
+| Presigned POST direct to S3 | No image traffic on the VM, size enforced by S3 | Images are public; replaced files stay in the bucket |
+| JWT in `localStorage` | Simple, stateless, works across tabs | Exposed to XSS; no server-side logout |
+| Let's Encrypt and DuckDNS | Free HTTPS on a named domain | Depends on free external services (R-10) |
+| PM2 restart on deploy | Simple and reliable | A few seconds of downtime per deploy |
+
+**Future improvements, in priority order.**
+
+1. Close #15 and #17: private RDS access, least-privilege IAM users with MFA.
+2. Monitoring: CloudWatch alarms on the health endpoint, CPU and RDS storage, plus
+   an AWS Budgets alert.
+3. Application hardening: restricted CORS origin, helmet, rate limiting on login and
+   upload, HSTS.
+4. Run the tests on every pull request, not only before deploy.
+5. RDS backup retention from 1 to 7 days, S3 versioning, deleting replaced images,
+   and a rehearsed RDS restore.
+6. CloudFront for the client and images.
+7. ALB with an Auto Scaling Group across two AZs and RDS Multi-AZ, when traffic or
+   availability needs justify the cost.
