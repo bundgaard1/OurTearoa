@@ -88,6 +88,18 @@ else
     NEW_PLACE_ID=$(echo "$BODY_OUT" | field 'd.id')
     req PUT "/places/$NEW_PLACE_ID" "$TOKEN" '{"description":"updated"}'
     check "PUT  /places/:id" 200
+    req POST "/places/$NEW_PLACE_ID/image-upload-url" "" '{"contentType":"image/png"}'
+    check "POST /places/:id/image-upload-url (no token)" 401
+    req POST "/places/$NEW_PLACE_ID/image-upload-url" "$TOKEN" '{"contentType":"image/gif"}'
+    check "POST /places/:id/image-upload-url (bad type)" 400
+    req POST "/places/does-not-exist/image-upload-url" "$TOKEN" '{"contentType":"image/png"}'
+    check "POST /places/:id/image-upload-url (unknown)" 404
+    req POST "/places/$NEW_PLACE_ID/image" "" '{"key":"x"}'
+    check "POST /places/:id/image (no token)" 401
+    req POST "/places/$NEW_PLACE_ID/image" "$TOKEN" '{"key":"public/places/other/a.png"}'
+    check "POST /places/:id/image (foreign key)" 400
+    req POST "/places/does-not-exist/image" "$TOKEN" '{"key":"public/places/does-not-exist/00000000-0000-0000-0000-000000000000.png"}'
+    check "POST /places/:id/image (unknown)" 404
     req DELETE "/places/$NEW_PLACE_ID" "$TOKEN";   check "DELETE /places/:id" 204
     req DELETE "/places/$NEW_PLACE_ID" "$TOKEN";   check "DELETE /places/:id (again)" 404
   fi

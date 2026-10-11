@@ -119,7 +119,7 @@ TLS-verified against the AWS global CA bundle.
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
 | RDS PostgreSQL | All application data | [region, instance class, storage, backup retention] |
-| S3 bucket | Place images and other static uploads | [bucket name, region, public-read policy, CORS config] |
+| S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87 |
 | DuckDNS | Public DNS for `ourtearoa.duckdns.org` | [update mechanism] |
 
 **Access control.** The EC2 instance is reachable only on 443 (and 22 for SSH from
@@ -131,8 +131,34 @@ environment, never committed.
 **TLS.** The RDS connection uses `sslmode=verify-full` with `global-bundle.pem`, so
 the certificate is validated rather than merely encrypted.
 
-> _Placeholder — the S3 integration is installed as a dependency but the bucket and
-> upload path are not yet wired into the API. Describe the intended flow here._
+**Image uploads (S3).** Image bytes never pass through the 1 GB EC2 instance. The
+client uploads straight to S3 with a presigned POST, and the API only signs and
+records:
+
+1. `POST /api/places/:id/image-upload-url` with `{ contentType }` (JPEG, PNG or
+   WebP). The API generates the object key itself,
+   `public/places/<placeId>/<uuid>.<ext>`, so a client filename is never used, and
+   returns `url`, `fields`, `key` and the final `imageUrl`.
+2. The browser sends a multipart POST of `fields` plus the file to `url`, with no
+   `Authorization` header. The signed policy only allows that exact key, that
+   content type and 1 byte to 5 MB (`content-length-range`). It expires after 5 minutes.
+3. `POST /api/places/:id/image` with `{ key }`. The API checks that the key belongs
+   to that place and that the object exists (`HeadObject`), then saves
+   `Place.imageUrl = S3_PUBLIC_BASE_URL + "/" + key`.
+4. `GET /api/places` and `/api/places/:id` return `imageUrl`, and the browser loads
+   the image directly from S3.
+
+Configuration: `S3_BUCKET_NAME`, `S3_PUBLIC_BASE_URL` and `AWS_REGION`. If the
+bucket settings are missing, both endpoints return `503`. If S3 itself fails, they
+return `502`. Credentials come from the default AWS provider chain: the instance
+role on EC2, a profile or env credentials locally.
+
+Trade-offs: a presigned POST was chosen over a presigned PUT because S3 enforces the
+size limit, not just the client. Public read on `public/*` keeps image URLs simple
+and cacheable but means every uploaded image is world-readable. Replaced images
+are not deleted from S3 yet. Like `PUT /places/:id`, any signed-in user may set a
+place image. `HeadObject` on a missing key returns `403` instead of `404` unless the
+role has `s3:ListBucket`, so the confirm step then answers `502` instead of `400`.
 
 ### 3.5 Request lifecycle
 
@@ -234,6 +260,8 @@ Base URL: `https://ourtearoa.duckdns.org/api` (local: `http://localhost:3000/api
 | POST | `/places` | yes | 201 | in progress (issue #35) |
 | PUT | `/places/:id` | yes | 200 | in progress (issue #35) |
 | DELETE | `/places/:id` | yes | 204 | in progress (issue #35) |
+| POST | `/places/:id/image-upload-url` | yes | 201 | `contentType` (jpeg/png/webp); presigned S3 POST, `key`, `imageUrl`; 503 if S3 is not configured |
+| POST | `/places/:id/image` | yes | 200 | `key` from the upload step; checks the object exists and saves `imageUrl` |
 
 `scripts/api-smoke-test.sh [BASE_URL]` calls these endpoints and checks the status
 codes, so they can be exercised without the client.

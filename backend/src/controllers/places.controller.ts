@@ -1,6 +1,18 @@
 import type { RequestHandler } from 'express';
 
 import { getPrisma } from '../db.js';
+import {
+  IMAGE_EXTENSIONS,
+  MAX_IMAGE_BYTES,
+  UPLOAD_URL_EXPIRES_SECONDS,
+  createImageUpload,
+  isPlaceImageKey,
+  newPlaceImageKey,
+  objectExists,
+  placeImagePrefix,
+  publicUrl,
+  storageConfig,
+} from '../storage.js';
 
 type PlaceData = {
   name?: string;
@@ -107,4 +119,68 @@ export const deletePlace: RequestHandler = async (req, res) => {
   }
   await prisma.place.delete({ where: { id } });
   res.status(204).send();
+};
+
+export const createPlaceImageUploadUrl: RequestHandler = async (req, res) => {
+  const id = String(req.params.id);
+  const contentType = req.body?.contentType;
+  if (typeof contentType !== 'string' || !(contentType in IMAGE_EXTENSIONS)) {
+    res.status(400).json({ error: `contentType must be one of ${Object.keys(IMAGE_EXTENSIONS).join(', ')}` });
+    return;
+  }
+  if (!(await getPrisma().place.findUnique({ where: { id } }))) {
+    res.status(404).json({ error: 'Place not found' });
+    return;
+  }
+  const config = storageConfig();
+  if (!config) {
+    res.status(503).json({ error: 'Image storage is not configured' });
+    return;
+  }
+  const key = newPlaceImageKey(id, contentType);
+  try {
+    const { url, fields } = await createImageUpload(config, key, contentType);
+    res.status(201).json({
+      url,
+      fields,
+      key,
+      imageUrl: publicUrl(config, key),
+      maxBytes: MAX_IMAGE_BYTES,
+      expiresIn: UPLOAD_URL_EXPIRES_SECONDS,
+    });
+  } catch (error) {
+    console.error('Presigned upload failed', error);
+    res.status(502).json({ error: 'Image storage is unavailable' });
+  }
+};
+
+export const setPlaceImage: RequestHandler = async (req, res) => {
+  const id = String(req.params.id);
+  const key = req.body?.key;
+  if (typeof key !== 'string' || !isPlaceImageKey(id, key)) {
+    res.status(400).json({ error: `key must be an upload key under ${placeImagePrefix(id)}` });
+    return;
+  }
+  const prisma = getPrisma();
+  if (!(await prisma.place.findUnique({ where: { id } }))) {
+    res.status(404).json({ error: 'Place not found' });
+    return;
+  }
+  const config = storageConfig();
+  if (!config) {
+    res.status(503).json({ error: 'Image storage is not configured' });
+    return;
+  }
+  try {
+    if (!(await objectExists(config, key))) {
+      res.status(400).json({ error: 'Image has not been uploaded' });
+      return;
+    }
+  } catch (error) {
+    console.error('Image check failed', error);
+    res.status(502).json({ error: 'Image storage is unavailable' });
+    return;
+  }
+  const place = await prisma.place.update({ where: { id }, data: { imageUrl: publicUrl(config, key) } });
+  res.json(place);
 };
