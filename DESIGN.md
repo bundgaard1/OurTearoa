@@ -225,7 +225,7 @@ TLS-verified against the AWS global CA bundle.
 | Service | Purpose | Notes |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
-| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); Single-AZ, storage encryption enabled, automated backups with 1-day retention; [allocated storage to be confirmed] |
+| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); Single-AZ, storage encryption enabled, automated backups with 1-day retention; 20 GiB allocated storage |
 | S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload working since #106, and live `imageUrl` values point to this bucket |
 | DuckDNS | Public DNS for `ourtearoa.duckdns.org` | Free; the record points to the Elastic IP `54.252.56.209`, which stays the same across stop and start, so no dynamic update client is needed. Route 53 was not used because it is a paid service |
 
@@ -668,14 +668,15 @@ public AWS price lists in October 2026; estimates, not billing data):
 | Item | Estimate (USD/month) | Note |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | about 9.93 | $0.0136 per hour |
-| EBS root volume | about 2 | 20 GB at about $0.10 per GB-month for gp3; [volume type assumed] |
-| RDS PostgreSQL | about 11.68 | `db.t4g.micro` (confirmed, `docs/screenshots/1-03-rds-running.png`) at $0.016 per hour, assuming Single-AZ; storage extra, backup storage up to the database size free |
+| EBS root volume | about 2 | 20 GB gp3 at about $0.10 per GB-month |
+| RDS PostgreSQL | about 11.68 | `db.t4g.micro` Single-AZ at $0.016 per hour |
+| RDS storage | about 2.80 | 20 GiB at roughly $0.14 per GB-month (estimate); backup storage up to the database size is free |
 | Elastic IP | about 3.65 | $0.005 per hour; AWS charges every public IPv4 address, including an attached Elastic IP |
 | S3 | under 0.10 | A few MB of images and low request volume |
 | Data transfer | close to 0 | Low traffic |
 | DuckDNS, Let's Encrypt | 0 | Free services |
 | GitHub Actions | 0 | Free for public repositories |
-| **Total** | **about 27** | Before free tier or credits |
+| **Total** | **about 30** | Before free tier or credits |
 
 The account is on the AWS free tier (confirmed by @bundgaard1). How much is covered
 depends on which kind [legacy or credit-based, to be confirmed]: accounts
