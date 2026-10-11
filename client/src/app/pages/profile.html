@@ -1,0 +1,39 @@
+<section>
+  <h1>Profile</h1>
+  @if (loading()) {
+    <app-loading />
+  } @else if (notFound()) {
+    <p class="not-found" role="alert">User not found. Your session is out of date.</p>
+    <a routerLink="/login">Log in again</a>
+  } @else if (failed()) {
+    <app-error-alert message="Could not load your profile." (retry)="load()" />
+  } @else if (profile(); as user) {
+    <dl class="details">
+      <dt>Name</dt>
+      <dd class="name">{{ user.name }}</dd>
+      <dt>Email</dt>
+      <dd class="email">{{ user.email }}</dd>
+      <dt>Member since</dt>
+      <dd class="since">{{ user.createdAt | date: 'mediumDate' }}</dd>
+    </dl>
+
+    <div class="danger">
+      <h2>Delete account</h2>
+      <p>This permanently removes your account and all your reviews, favourites and itinerary entries.</p>
+      @if (confirming()) {
+        <p class="confirm-text">Are you sure? This cannot be undone.</p>
+        <p class="controls">
+          <button type="button" class="confirm" [disabled]="deleting()" (click)="confirmDelete()">
+            {{ deleting() ? 'Deleting...' : 'Yes, delete my account' }}
+          </button>
+          <button type="button" class="cancel" [disabled]="deleting()" (click)="cancelDelete()">Cancel</button>
+        </p>
+      } @else {
+        <button type="button" class="delete" (click)="askDelete()">Delete account</button>
+      }
+      @if (deleteError()) {
+        <p class="action-error" role="alert">{{ deleteError() }}</p>
+      }
+    </div>
+  }
+</section>
