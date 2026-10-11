@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -65,7 +69,8 @@ jobs:
             # Update backend dependencies & DB schema
             cd backend
             npm ci --omit=dev
-            npx prisma migrate deploy
+            npx --no prisma generate
+            npx --no prisma migrate deploy
 
             # Reload backend with zero downtime
             pm2 reload ecosystem.config.js || pm2 reload server || pm2 restart all
