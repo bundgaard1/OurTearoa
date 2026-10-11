@@ -223,10 +223,8 @@ Architecturally, the application enforces a strict separation of concerns throug
 
 #figure(
   image("diagrams/erd.png", width: 70%),
-  caption: [Hello World],
+  caption: [Entity-Relationship Diagram (ERD) of PostgreSQL Database Schema],
 )
-
-
 
 == Object Storage Architecture (AWS S3)
 

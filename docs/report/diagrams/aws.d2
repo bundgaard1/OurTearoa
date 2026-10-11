@@ -1,5 +1,9 @@
 direction: down
 
+**.style.font-size: 30
+(** -> **)[*].style.font-size: 30
+(** -> **)[*].style.font-color: black
+
 client: Client Tier (User Browser) {
   shape: person
   label: "User Browser / Angular 22 SPA\n(https://ourtearoa.duckdns.org)"
@@ -8,10 +12,10 @@ client: Client Tier (User Browser) {
 aws: AWS Cloud (ap-southeast-2) {
   style.stroke-dash: 3
 
-  ec2: AWS EC2 (t3.micro - Amazon Linux 2023) {
+  ec2: AWS EC2 (t3.micro) {
     nginx: Nginx Reverse Proxy & TLS {
       shape: hexagon
-      label: "Nginx (Port 443)\nTLS Termination (Let's Encrypt)"
+      label: "Nginx (Port 443)"
     }
 
     static_spa: Static Web Root {
@@ -21,7 +25,7 @@ aws: AWS Cloud (ap-southeast-2) {
 
     express_api: Application Tier {
       shape: rectangle
-      label: "Node.js 26 / Express 5 API\n127.0.0.1:3000 (PM2 & tsx)\nPrisma 7 ORM"
+      label: "Node.js 26 / Express 5 API\n127.0.0.1:3000\nPrisma 7 ORM"
     }
 
     nginx -> static_spa: "Serve /*"
@@ -31,7 +35,7 @@ aws: AWS Cloud (ap-southeast-2) {
   data_tier: Data & Object Storage Tier {
     rds: AWS RDS PostgreSQL 16 {
       shape: cylinder
-      label: "AWS RDS PostgreSQL 16\nPort 5432\nPrivate Security Group\n(sslmode=verify-full)"
+      label: "AWS RDS PostgreSQL 16\nPort 5432\nPrivate Security Group"
     }
 
     s3: AWS S3 Bucket {
@@ -42,7 +46,7 @@ aws: AWS Cloud (ap-southeast-2) {
 }
 
 # Network & Application Connections
-client -> aws.ec2.nginx: "1. HTTPS (Port 443)\nourtearoa.duckdns.org"
+client -> aws.ec2.nginx: "1. HTTPS (Port 443)"
 aws.ec2.express_api -> aws.data_tier.rds: "2. SQL Query over TLS\n(Port 5432)"
 aws.ec2.express_api -> aws.data_tier.s3: "3. Media Metadata\nIAM Role via IMDS"
 client -> aws.data_tier.s3: "Direct GET Media\n/public/*" {

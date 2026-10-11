@@ -8,6 +8,6 @@ diagrams:
 	d2 diagrams/erd.d2 -t 0 diagrams/erd.png
 
 report: diagrams
-	typst compile main.typ
+	typst compile main.typ draft-ourtearoa.pdf
 
 all: report diagrams
