@@ -225,7 +225,7 @@ TLS-verified against the AWS global CA bundle.
 | Service | Purpose | Notes |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
-| RDS PostgreSQL | All application data | `ap-southeast-2` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem`; [instance class, storage, backup retention to be confirmed from the AWS console] |
+| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); [storage, backup retention to be confirmed from the AWS console] |
 | S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload working since #106, and live `imageUrl` values point to this bucket |
 | DuckDNS | Public DNS for `ourtearoa.duckdns.org` | [update mechanism] |
 
@@ -563,7 +563,8 @@ and the API. Reliability comes from restarting rather than redundancy:
   reboot. Nginx is a systemd service as well.
 - The swap file protects the API from the OOM killer on 1 GB RAM (R-2).
 - RDS is a managed service; AWS replaces failed hardware and applies patches in the
-  maintenance window. [Single-AZ or Multi-AZ to be confirmed; Single-AZ assumed.]
+  maintenance window. The instance is a `db.t4g.micro` in `ap-southeast-2a`; [Single-AZ
+  assumed, Multi-AZ setting to be confirmed].
 - `GET /api/health` checks the database with a timeout (`HEALTH_DB_TIMEOUT_MS`,
   default 3000 ms) and returns `503` with a `reason`, so a failure can be told apart
   from a network or credential problem (section 3.6).
@@ -663,7 +664,7 @@ public AWS price lists in October 2026; estimates, not billing data):
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | about 9.93 | $0.0136 per hour |
 | EBS root volume | about 1 | Small gp3 volume; [size to be confirmed] |
-| RDS PostgreSQL | about 11.68 | If `db.t4g.micro` Single-AZ at $0.016 per hour; [class to be confirmed]; storage extra, backup storage up to the database size free |
+| RDS PostgreSQL | about 11.68 | `db.t4g.micro` (confirmed, `docs/screenshots/1-03-rds-running.png`) at $0.016 per hour, assuming Single-AZ; storage extra, backup storage up to the database size free |
 | Public IPv4 address | about 3.65 | $0.005 per hour for public IPv4 addresses |
 | S3 | under 0.10 | A few MB of images and low request volume |
 | Data transfer | close to 0 | Low traffic |
