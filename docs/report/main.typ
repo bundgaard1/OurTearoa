@@ -108,11 +108,14 @@ Architecturally, the application enforces a strict separation of concerns throug
 
 == Technology Stack
 
-- *Client Tier:* Built with Angular 22 as a Single Page Application (SPA), leveraging standalone components, reactive signals for state management, Angular Router, and Vitest for unit testing.
+- *Client Tier:* Built with Angular 22 as a Single Page Application (SPA) @angular_framework, leveraging standalone components, reactive signals for state management, Angular Router, and Vitest for unit testing.
 - *Application Tier:* Implemented using Express 5 and TypeScript running directly on Node.js 26 via `tsx`, managed in production with PM2 process persistence under systemd.
-- *Data Tier:* Managed PostgreSQL 16 on AWS RDS (`ap-southeast-2`), accessed via Prisma 7 ORM utilizing the `@prisma/adapter-pg` driver over verified TLS connections.
+- *Data Tier:* Managed PostgreSQL 16 on AWS RDS (`ap-southeast-2`) @aws_rds, accessed via Prisma 7 ORM utilizing the `@prisma/adapter-pg` driver over verified TLS connections.
 
-- *Infrastructure & Network:* Compute hosted on an AWS EC2 `t3.micro` instance running Amazon Linux 2023, static media offloaded to AWS S3, reverse proxy and TLS termination handled by Nginx with Let's Encrypt certificates, and DNS mapped to the instance's Elastic IP via DuckDNS (`ourtearoa.duckdns.org`) — a static record, so no dynamic update client is needed.
+- *Infrastructure:* Compute is hosted on Amazon Elastic Compute Cloud (Amazon EC2) @aws_ec2, static assets are offloaded to Amazon Simple Storage Service (Amazon S3) @aws_s3, and relational state is delegated to Amazon Relational Database Service (Amazon RDS) for PostgreSQL @aws_rds.
+
+
+- *Network:* Reverse proxy and TLS termination handled by Nginx with Let's Encrypt certificates @letsencrypt, and DNS mapped to the instance's Elastic IP via DuckDNS (`ourtearoa.duckdns.org`). DuckDNS is a free static record, so no dynamic update client is needed @duckdns.
 
 - *Delivery and local development:* GitHub Actions tests and builds the client and deploys over rsync and SSH (see @sec-cicd); Docker Compose runs PostgreSQL 16 for local development.
 
@@ -139,21 +142,21 @@ Visitors planning a trip around New Zealand gather destinations, opinions and da
   [FR-6], [A documented REST API and health endpoint usable without the client], [US-17, US-18],
 )
 
-The full user stories US-01 to US-20 with their acceptance criteria and status are listed in #link(<app-user-stories>)[Appendix B]. The contributor stories US-14 and US-15 are only partial: the API endpoints exist (`POST /places`, `PUT`/`DELETE /places/:id` and the S3 image upload), but there is no "add place" screen, and places have no owner field, so any signed-in user can change any place. US-16 (contributor image upload to cloud storage) was removed as a separate story: place images are covered by the S3 presigned direct upload (issues \#71, \#73 and \#87); an earlier plan to store images on the EC2 disk was dropped because it would put upload traffic and storage on the 1 GB `t3.micro` and every image would be lost if the instance were replaced.
+The full user stories US-01 to US-20 with their acceptance criteria and status are listed in #link(<app-user-stories>)[Appendix B].
 
-== Cloud Engineering & Evaluator Requirements
+== Non-Functional Requirements
 
 #table(
-  columns: (0.5fr, 0.9fr, 1.7fr, 1.9fr),
+  columns: (0.5fr, 1fr, 2fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
-  table.header([*ID*], [*Quality*], [*Requirement*], [*How it is met*]),
-  [NFR-1], [Availability], [Reachable at a public URL from submission until marking ends], [EC2 + PM2 with systemd restart, managed RDS, health endpoint (@sec-availability)],
-  [NFR-2], [Security], [HTTPS everywhere, hashed passwords, no secrets in Git, least-privilege cloud access], [Let's Encrypt, bcrypt, verified TLS to RDS, IAM role for S3 (@sec-security)],
-  [NFR-3], [Usability], [Never a blank or frozen screen], [Loading, empty and error states with retry (US-19)],
-  [NFR-4], [Maintainability], [Every merge to `main` deployed automatically and repeatably], [GitHub Actions with tests, `prisma migrate deploy`, serialised runs (@sec-cicd)],
-  [NFR-5], [Cost], [Stay within the student free tier or credits], [Smallest instance sizes, single AZ, no load balancer or NAT (@sec-cost)],
-  [NFR-6], [Testability], [API testable independently of the UI], [Endpoints table and `scripts/api-smoke-test.sh` (45 checks) (@sec-api-overview)],
+  table.header([*ID*], [*Quality Attribute*], [*Requirement*]),
+  [NFR-1], [Availability], [Reachable at a public URL from submission until marking ends], 
+  [NFR-2], [Security], [HTTPS everywhere, hashed passwords, no secrets in Git, least-privilege cloud access], 
+  [NFR-3], [Usability], [Never a blank or frozen screen], 
+  [NFR-4], [Maintainability], [Every merge to `main` deployed automatically and repeatably], 
+  [NFR-5], [Cost], [Stay within the student free tier or credits],
+  [NFR-6], [Testability], [API testable independently of the UI], 
 )
 
 US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access to the documented REST API, the health check, loading and error states, and HTTPS.
@@ -161,68 +164,47 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
 == Constraints
 
 - *Assignment brief (Option B):* three tiers; client and API decoupled by REST; at least 10 REST services including at least 3 `POST`; a cloud database, not a database installed on the VM; assets in cloud object storage; public URLs for client and API; Git collaboration without history rewriting. OurTearoa exposes 25 endpoints, 8 of them `POST` (@sec-api-overview), uses RDS and S3, and keeps a linear history of merged PRs.
-- *Team:* two part-time students over one semester. One AWS account, administered by Mathias Jørgensen, so console changes are a bottleneck (issue \#17).
+- *Team:* two part-time students over one semester. One AWS account, administered by Mathias Jørgensen.
 - *Budget:* free tier or student credits only, which rules out load balancers, Multi-AZ databases and managed container platforms.
 - *Infrastructure:* the 1 GB `t3.micro` cannot build the Angular client and must not carry image traffic. Both shaped the design: the client is built in CI (@sec-cicd) and images go straight to S3 (@sec-s3-flow).
 
 == Assumptions
 
 #table(
-  columns: (1.4fr, 1.2fr, 1.6fr),
+  columns: (1fr, 1fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
-  table.header([*Assumption*], [*Justification*], [*If it turns out wrong*]),
-  [Traffic is low: the team, markers and a few test users], [Coursework, no marketing; 8 seeded places], [Scale out as described in @sec-scalability],
-  [Short outages outside marking sessions are acceptable], [No SLA; availability matters during the evaluation window], [Add monitoring and a second instance (@sec-availability)],
-  [Users are mainly in New Zealand and Australia], [Product scope], [`ap-southeast-2` (Sydney) keeps latency low; a CDN would serve other regions],
-  [Any signed-in user may edit places and add images], [Community-curated catalogue; no moderation in scope], [Add an owner or admin role (US-15 is partial for this reason)],
-  [Stored personal data is minimal (name, email, password hash)], [No payments or location tracking], [Revisit data protection if more personal data is added],
-  [Place images may be public], [They are catalogue content], [Use private objects with presigned GET URLs],
+  table.header([*Assumption*], [*Justification*]),
+  [Traffic is low: the team, markers and a few test users],
+  [Short outages outside marking sessions are acceptable], [No SLA; availability matters during the evaluation window], 
+  [Users are mainly in New Zealand and Australia], [Product scope], 
+  [Any signed-in user may edit places and add images], [Community-curated catalogue; no moderation in scope],
+  [Stored personal data is minimal (name, email, password hash)], [No payments or location tracking], 
+  [Place images may be public], 
 )
-
-== Risks
-
-#text(size: 9pt)[
-  #table(
-    columns: (auto, auto, auto, auto, auto, auto),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*ID*], [*Risk*], [*Likelihood*], [*Impact*], [*Mitigation*], [*Status*]),
-    [R-1], [The single EC2 instance fails or is replaced], [Low], [High: client and API down], [Stateless API, data in RDS and S3, setup documented in `docs/`, deploy fully automated], [Accepted for cost],
-    [R-2], [The API runs out of memory on 1 GB RAM], [Medium], [Medium], [Swap file, client built in CI, PM2 restarts the process], [Mitigated],
-    [R-3], [Secrets leak through Git or logs], [Low], [High], [`.env` and keys gitignored, GitHub Actions secrets, IAM role instead of S3 keys], [Audit open (issue \#10)],
-    [R-4], [The database is reachable from the internet], [Medium], [High], [Security group rules, `sslmode=verify-full`, strong password], [Tightening open (issue \#15)],
-    [R-5], [A broken change is deployed], [Medium], [Medium], [Client tests run before every deploy; serialised deploys; `migrate deploy` only], [Mitigated (issues \#101 and \#105)],
-    [R-6], [Cost overrun or credits expire before marking ends], [Low], [High: account could be suspended], [Smallest sizes, no idle extras, cost estimate in @sec-cost], [Budget alert recommended],
-    [R-7], [Data loss in the database], [Low], [High], [RDS automated backups and point-in-time restore], [Retention is only 1 day; 7 days recommended (@sec-backup)],
-    [R-8], [The image upload is abused], [Low], [Low], [Login required; presigned policy limits key, type and size to 5 MB], [No rate limit yet],
-    [R-9], [Only one team member can change AWS], [Medium], [Medium], [Setup documented; IAM access for both members], [Open (issue \#17)],
-    [R-10], [A free external service fails (DuckDNS, Let's Encrypt)], [Low], [Medium], [Certbot renews certificates; the domain could move to Route 53], [Accepted],
-  )
-]
 
 == Cloud Opportunities
 
 - *Managed database (RDS):* backups, patching and storage are AWS's job, not the team's.
-- *Object storage with presigned uploads (S3):* durable image storage outside the VM; uploads bypass the API host completely.
-- *Identity (IAM role):* the API gets short-lived S3 credentials from the instance role, with no access keys on disk.
-- *Elastic CI capacity (GitHub Actions):* builds and tests run on hosted runners, so the production VM stays small.
+- *Object storage with presigned uploads (S3):* durable image storage outside the VM; uploads bypass the API host completely @aws_s3_presigned.
+- *Identity (IAM role):* the API gets short-lived S3 credentials from the instance role, with no access keys on disk @aws_imds.
+- *Elastic CI capacity (GitHub Actions):* builds and tests run on hosted runners, so the production VM stays small @github_actions.
 - *Pay as you go:* the system runs on the smallest sizes now and has a clear path to scale (@sec-scalability) when needed.
 
 == From Business Needs to Technical Objectives
 
 #table(
-  columns: (1.3fr, 1.6fr, 1.5fr),
+  columns: (1.3fr, 1.6fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
-  table.header([*Business need*], [*Technical objective*], [*Verified by*]),
-  [Anyone can explore places], [Public, read-only endpoints; auth only for writes], [Smoke test calls the public endpoints without a token],
-  [Travellers keep personal plans], [JWT auth; ownership enforced on every user-owned row], [Smoke test checks `401` without a token and `404` on other users' data],
-  [Trustworthy and easy to reach], [HTTPS on a named domain, HTTP redirected], [`curl -I http://ourtearoa.duckdns.org` returns `301`],
-  [Markers can assess without the UI], [Every feature reachable through REST], [@sec-api-overview, smoke test log in `docs/evidence/`],
-  [Rich places without overloading the VM], [Images in S3 via presigned direct upload], [Live `imageUrl` values point to `ourtearoa-storage`],
-  [Always reflects the latest code], [CI/CD on every merge, tests before deploy], [GitHub Actions run history],
-  [Stays affordable], [Free-tier-sized resources], [Cost estimate in @sec-cost],
+  table.header([*Business need*], [*Technical objective*], ),
+  [Anyone can explore places], [Public, read-only endpoints; auth only for writes], 
+  [Travellers keep personal plans], [JWT auth; ownership enforced on every user-owned row], 
+  [Trustworthy and easy to reach], [HTTPS on a named domain, HTTP redirected], 
+  [Markers can assess without the UI], [Every feature reachable through REST], 
+  [Rich places without overloading the VM], [Images in S3 via presigned direct upload], 
+  [Always reflects the latest code], [CI/CD on every merge, tests before deploy], 
+  [Stays affordable], [Free-tier-sized resources]
 )
 
 // ==========================================
@@ -231,22 +213,23 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
 
 = Project Management
 
-== Work Breakdown Structure (WBS)
-The work was broken down into six work packages and tracked as GitHub issues (issue numbers in brackets). Each issue was implemented on a feature branch and merged through a reviewed pull request.
+== Work Breakdown Structure 
+The work was broken down into six work packages and tracked as GitHub issues . Each issue was implemented on a feature branch and merged through a reviewed pull request.
 
 #figure(
   text(size: 9pt)[
     #table(
-      columns: (auto, 1fr, 2.4fr),
+      columns: (auto, 1fr, 3fr),
       inset: 5.5pt,
+      align: left,
       stroke: 0.5pt + rgb("#cbd5e0"),
       table.header([*WP*], [*Work package*], [*Tasks (GitHub issues)*]),
-      [1], [Project setup], [Kick-off meeting and minutes (\#1, \#2); repository scaffolding and conventions (\#3); local hello-world slice (\#4)],
-      [2], [AWS infrastructure], [Provision RDS PostgreSQL (\#5); backend database round-trip (\#6); provision and configure EC2 (\#7); public API URL (\#8); HTTPS for the client (\#9); S3 bucket and IAM role (\#87); secrets, RDS security and IAM access (\#10, \#15, \#17, open)],
-      [3], [CI/CD], [GitHub Actions deploy (\#11); production migration fixes (\#47); client tests in CI (\#70); Prisma client regeneration and serialised deploys (\#104)],
-      [4], [Backend REST API], [JWT authentication (\#29, \#30); favourites, itinerary, reviews, users and places endpoints (\#31 to \#35, \#44); S3 presigned image upload (\#71, \#106)],
-      [5], [Angular client], [Core models, design tokens, auth store and interceptor (\#48 to \#50); app shell, login, register, auth guard (\#51 to \#54); catalogue, detail panel, filter, map, reviews (\#55 to \#62); favourites, itinerary, profile (\#63 to \#68); image upload (\#73)],
-      [6], [Testing, evidence and documentation], [API curl script and public smoke test (\#36, \#43); evidence pack (\#12); design document (\#69, \#108, \#112); screenshots (\#111); report (\#115, \#118)],
+      [1], [Project setup], [Kick-off meeting and minutes; repository scaffolding and conventions; local hello-world slice],
+      [2], [AWS infrastructure], [Provision RDS PostgreSQL; backend database round-trip; provision and configure EC2; public API URL ; HTTPS for the client; S3 bucket and IAM role; secrets, RDS security and IAM access ],
+      [3], [CI/CD], [GitHub Actions deploy; production migration fixes; client tests in CI ; Prisma client regeneration and serialised deploys],
+      [4], [Backend REST API], [JWT authentication; favourites, itinerary, reviews, users and places endpoints; S3 presigned image upload],
+      [5], [Angular client], [Core models, design tokens, auth store and interceptor; app shell, login, register, auth guard; catalogue, detail panel, filter, map, reviews; favourites, itinerary, profile; image upload ],
+      [6], [Testing, evidence and documentation], [API curl script and public smoke test; evidence pack; design document; screenshots; report ],
     )
   ],
   caption: [Work Breakdown Structure (WBS)],
@@ -259,22 +242,23 @@ The schedule follows the issue history in GitHub (created and closed dates). The
 #figure(
   text(size: 9pt)[
     #table(
-      columns: (auto, 1.2fr, 2.2fr),
+      columns: (auto, auto, 3fr),
       inset: 5.5pt,
+      align: left,
       stroke: 0.5pt + rgb("#cbd5e0"),
       table.header([*Period*], [*Phase*], [*Milestones reached*]),
-      [6-7 Aug 2026], [Kick-off and planning], [Start meeting and minutes; requirements and user stories; work packages 1 to 6 created as issues],
-      [Aug to Sep 2026], [Cloud skeleton], [RDS round-trip and public API URL live (29 Sep); client served over HTTPS and CI/CD deploying on every merge (30 Sep)],
-      [4-6 Oct 2026], [Backend API], [JWT auth and all REST endpoints implemented; curl script for every endpoint; production migrations fixed],
-      [6-11 Oct 2026], [Angular client and S3], [All client screens (9-11 Oct); client tests in CI; S3 bucket and IAM role (9-11 Oct); image upload working end to end (11 Oct)],
-      [11-12 Oct 2026], [Evidence and design], [Public smoke test log and evidence pack (11 Oct); requirements and quality sections; final AWS values and screenshots (12 Oct)],
-      [12-16 Oct 2026], [Report and video], [Report written; submission on 16 October 2026],
+      [Start Aug 2026], [Kick-off and planning], [Start meeting and minutes; requirements and user stories; work packages 1 to 6 created as issues],
+      [Aug to Sep 2026], [Cloud skeleton], [RDS round-trip and public API URL live; client served over HTTPS and CI/CD deploying on every merge],
+      [Oct 2026], [Backend API], [JWT auth and all REST endpoints implemented; curl script for every endpoint; production migrations fixed],
+      [Oct 2026], [Angular client and S3], [All client screens; client tests in CI; S3 bucket and IAM role; image upload working end to end ],
+      [Oct 2026], [Evidence and design], [Public smoke test log and evidence pack; requirements and quality sections; final AWS values and screenshots ],
+      [Oct 2026], [Report and video], [Report written; submission on 16 October 2026],
     )
   ],
   caption: [Project timeline and milestone delivery schedule],
 )
 
-Most of the feature work happened in the last two weeks, once the cloud skeleton was stable. The open security issues (\#10, \#15, \#17) were not finished before submission and are listed as future improvements in @sec-tradeoffs.
+Most of the feature work happened in the last two weeks, once the cloud skeleton was stable.
 
 == Meeting Minutes & Collaboration Logs
 #prompt("What to write", [
@@ -330,22 +314,22 @@ Most of the feature work happened in the last two weeks, once the cloud skeleton
 
 The requirements this architecture answers are in @sec-requirements; its security, availability, scalability and cost trade-offs are evaluated in @sec-quality.
 
-*Client tier — Angular 22 SPA*
+*Client tier - Angular 22 SPA*
 
-A standalone single-page application in `client/`, built on Angular standalone components with signals for state. It is a pure client-side app: there is no server-side rendering, so the compiled bundle in `client/dist/client/browser/` is the entire deployable artefact. The API base URL is baked in at compile time from `client/src/environments/` — there is no runtime configuration and no dev-server proxy, so changing the API host means recompiling and redeploying the client.
+A standalone single-page application in `client/`, built on Angular standalone components with signals for state. It is a pure client-side app: there is no server-side rendering, so the compiled bundle in `client/dist/client/browser/` is the entire deployable artefact. The API base URL is baked in at compile time from `client/src/environments/` - there is no runtime configuration and no dev-server proxy, so changing the API host means recompiling and redeploying the client.
 
-*Application tier — Express 5 + TypeScript on Node*
+*Application tier - Express 5 + TypeScript on Node*
 
-A REST API in `backend/`, written in TypeScript and run directly by `tsx` with no build step, so the deployed source and the running code are identical. Express 5 mounts every route under `/api` and delegates to controllers; `cors()` is enabled so the client can be served from a different origin during development. Prisma Client is the only data-access layer — no raw SQL outside the health check.
+A REST API in `backend/`, written in TypeScript and run directly by `tsx` with no build step, so the deployed source and the running code are identical. Express 5 mounts every route under `/api` and delegates to controllers; `cors()` is enabled so the client can be served from a different origin during development. Prisma Client is the only data-access layer - no raw SQL outside the health check.
 
 The application tier is stateless: all session state lives in the database, which is what allows the process to be reloaded or replaced without losing data.
 
-*Data tier — managed PostgreSQL*
+*Data tier - managed PostgreSQL*
 
 AWS RDS for PostgreSQL holds all application data. Because the database is a managed service rather than something installed on the VM, backups, patching and failover are handled by AWS, and the application tier holds no data of its own. The connection is TLS-verified against the AWS global CA bundle.
 
 #figure(
-  image("diagrams/aws.png"),
+  image("diagrams/aws.png", width: 80%),
   caption: [High-Level Three-Tier Cloud Architecture Diagram (EC2, Nginx, RDS, S3)]
 )
 
@@ -362,7 +346,7 @@ A single place-detail page load, as an example:
 + Any error is translated to a status code and JSON error body; a failed request surfaces a visible error state in the component rather than a blank screen.
 
 #figure(
-  image("diagrams/stepbystep.png"),
+  image("diagrams/stepbystep.png", width: 80%),
   caption: [Request lifecycle of a place-detail page load]
 )
 
@@ -410,9 +394,7 @@ The frontend is deliberately minimal: plain standalone components, a single glob
   caption: [Wireframes from the planning phase: favourites and itinerary],
 )
 
-The implementation kept the screens, the navigation and the endpoint mapping, but changed three things. The map moved from the place list into the detail panel, and the detail opens as a side panel next to the list instead of a separate page. The add-place screen was not built (US-14 is partial). Image upload moved to the detail panel, and the planned presigned PUT through a separate `/uploads` endpoint became a presigned POST, so that S3 enforces the size limit (@sec-s3-flow).
-
-The contributor stories (US-14, US-15) have no screen yet. The API endpoints exist (@sec-api-overview), but adding and editing places is a later-stage feature.
+The implementation kept the screens, the navigation and the endpoint mapping, but changed three things. The map moved from the place list into the detail panel, and the detail opens as a side panel next to the list instead of a separate page. The add-place screen was not built. Image upload moved to the detail panel, and the planned presigned PUT through a separate `/uploads` endpoint became a presigned POST, so that S3 enforces the size limit (@sec-s3-flow).
 
 === Navigation and User Flows
 
@@ -472,15 +454,15 @@ Trade-offs: a presigned POST was chosen over a presigned PUT because S3 enforces
 == Compute Provisioning & System Hardening (AWS EC2)
 
 #table(
-  columns: (auto, 1fr, 1.8fr),
+  columns: (auto, 1fr, 3fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Service*], [*Purpose*], [*Notes*]),
-  [EC2 `t3.micro`], [Hosts Nginx and the Node API], [1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process],
+  [EC2 `t3.micro`], [Hosts Nginx and the Node API], [1 GB RAM, so a swap file is configured to keep the Out-Of-Memory (OOM) killer away from the API process],
   [DuckDNS], [Public DNS for `ourtearoa.duckdns.org`], [Free; the record points to the Elastic IP `54.252.56.209`, which stays the same across stop and start, so no dynamic update client is needed. Route 53 was not used because it is a paid service],
 )
 
-The EC2 instance serves 443, and 80 only to redirect to HTTPS. SSH on 22 is used for administration and by the deploy workflow. Nginx terminates TLS with a Let's Encrypt certificate (Certbot), serves the SPA from `/var/www/ourtearoa`, and proxies `/api/*` to `127.0.0.1:3000`. PM2 runs the API with systemd persistence.
+The EC2 instance serves 443, and 80 only to redirect to HTTPS. SSH on 22 is used for administration and by the deploy workflow. Nginx terminates TLS with a Let's Encrypt certificate (Certbot) @letsencrypt, serves the SPA from `/var/www/ourtearoa`, and proxies `/api/*` to `127.0.0.1:3000`. PM2 runs the API with systemd persistence.
 
 #figure(
   image("media/screenshots/2-01-ec2-running.png", width: 100%),
@@ -505,7 +487,7 @@ The EC2 instance serves 443, and 80 only to redirect to HTTPS. SSH on 22 is used
 == Managed Cloud Database Setup (AWS RDS PostgreSQL)
 
 #table(
-  columns: (auto, 1fr, 1.8fr),
+  columns: (auto, 1fr, 3fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Service*], [*Purpose*], [*Notes*]),
@@ -529,7 +511,7 @@ The RDS connection uses `sslmode=verify-full` with `global-bundle.pem`, so the c
 == Cloud Object Storage Provisioning (AWS S3)
 
 #table(
-  columns: (auto, 1fr, 1.8fr),
+  columns: (auto, 1fr, 3fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Service*], [*Purpose*], [*Notes*]),
@@ -538,20 +520,19 @@ The RDS connection uses `sslmode=verify-full` with `global-bundle.pem`, so the c
 
 The upload flow is described in @sec-s3-flow.
 
-#img-placeholder("Figure 6.5: AWS S3 Bucket Configuration and Uploaded Place Asset Objects")
 
 == CI/CD Pipeline & Automated Deployment <sec-cicd>
 
 The workflow runs on pushes to `main` that change files under `backend/` or `client/` and triggers `.github/workflows/deploy.yaml`, which:
 
-+ Compiles the Angular production bundle on the GitHub runner. This is done in CI deliberately — the `t3.micro` does not have the memory to build the client.
++ Compiles the Angular production bundle on the GitHub runner. This is done in CI deliberately - the `t3.micro` does not have the memory to build the client.
 + Rsyncs the compiled bundle to the Nginx web root at `/var/www/ourtearoa/`.
 + SSHes into the instance, `git pull`s the backend, installs production dependencies, regenerates the Prisma client (`backend/generated` is not committed), and runs `prisma migrate deploy`. Both use `npx --no`, so the locked Prisma version is used and is never silently downloaded.
 + Reloads the API through PM2 and restores the SELinux `httpd_sys_content_t` context on the web root so Nginx can read the new files.
 
 A `concurrency` group makes deploys run one at a time, because two overlapping runs on the same instance delete each other's `node_modules` during `npm ci`.
 
-Migrations run as `migrate deploy` — never `migrate dev` — so production schema changes are applied, not regenerated. Secrets (the SSH key, host, user) are held in GitHub Actions secrets and never appear in the repository.
+Migrations run as `migrate deploy` - never `migrate dev` - so production schema changes are applied, not regenerated. Secrets (the SSH key, host, user) are held in GitHub Actions secrets and never appear in the repository.
 
 Health verification after any deploy:
 
@@ -559,7 +540,12 @@ Health verification after any deploy:
 curl -i https://ourtearoa.duckdns.org/api/health
 ```
 
-`200` with `{"status":"UP","database":"UP"}` confirms the API _and_ its database connection are live. A `503` with `reason: "timeout"` means the RDS security group does not cover the instance; `reason: "unreachable"` means credentials or SSL settings are wrong.
+`200` with `{"status":"UP","database":"UP"}` confirms the API and its database connection are live. A `503` with `reason: "timeout"` means the RDS security group does not cover the instance; `reason: "unreachable"` means credentials or SSL settings are wrong.
+
+#figure(
+  image("media/screenshots/ci-cd evidence.png", width: 100%),
+  caption: [GitHub Actions workflow run showing the automated deployment steps],
+)
 
 #figure(
   image("media/screenshots/actions-runs.png", width: 100%),
@@ -609,17 +595,17 @@ This section evaluates the deployed system against the quality attributes in @se
   )
 ]
 
-Trade-off: the controls above cover the risks of a small public catalogue with minimal personal data. Rate limiting, a WAF and a private-subnet database were left out to stay within time and the free tier, and are listed in @sec-tradeoffs.
+The controls above cover the risks of a small public catalogue with minimal personal data. Rate limiting, a WAF and a private-subnet database were left out to stay within time and the free tier, and are listed in @sec-tradeoffs.
 
 == Availability and Reliability <sec-availability>
 
 *Current design.* A single EC2 instance in one Availability Zone serves the client and the API. Reliability comes from restarting rather than redundancy:
 
 - PM2 restarts the API if it crashes, and its systemd unit starts PM2 again after a reboot. Nginx is a systemd service as well.
-- The swap file protects the API from the OOM killer on 1 GB RAM (R-2).
+- The swap file protects the API from the OOM killer on 1 GB RAM.
 - RDS is a managed service; AWS replaces failed hardware and applies patches in the maintenance window. The instance is a Single-AZ `db.t4g.micro` in `ap-southeast-2a` (Multi-AZ is off).
 - `GET /api/health` checks the database with a timeout (`HEALTH_DB_TIMEOUT_MS`, default 3000 ms) and returns `503` with a `reason`, so a failure can be told apart from a network or credential problem (@sec-cicd).
-- Deploys are serialised and tests run first (R-5). PM2 restarts the process, so a deploy causes a downtime of a few seconds.
+- Deploys are serialised and tests run first. PM2 restarts the process, so a deploy causes a downtime of a few seconds.
 
 *Expected availability (estimate).* The instance, its AZ and the database are each single points of failure. AWS offers 99.5% for a single EC2 instance and 99.5% for a Single-AZ RDS instance; together that is roughly 99% per month, or up to about 7 hours of possible downtime. That is acceptable under the assumption in @sec-requirements that short outages outside marking sessions do not matter.
 
@@ -639,13 +625,15 @@ Trade-off: the controls above cover the risks of a small public catalogue with m
     table.header([*Component*], [*Where the state lives*], [*Backup*], [*Recovery*]),
     [Application data], [RDS], [Automated daily snapshots and point-in-time restore, retention 1 day; manual snapshot before risky migrations], [Restore to a new instance and update `DATABASE_URL`],
     [Schema], [Git (`backend/prisma/migrations/`)], [Every migration is versioned], [`prisma migrate deploy`],
-    [Images], [S3], [99.999999999% designed durability, stored across several AZs], [Versioning is disabled; enabling it would protect against accidental deletes and overwrites],
+    [Images], [S3], [99.99% designed durability @aws_s3, stored across several AZs], [Versioning is disabled; enabling it would protect against accidental deletes and overwrites],
     [Code and client], [GitHub], [Every merged PR], [The deploy workflow rebuilds and redeploys],
     [EC2 instance], [None (stateless)], [Setup documented in `docs/cloud-ec2-setup.md`], [Launch a new instance, follow the guide, move the Elastic IP to it, so DNS and the deploy host secret stay unchanged],
   )
 ]
 
-*Targets (estimates, not tested).* RPO: about 5 minutes for the database, the interval of RDS transaction log backups; zero for code. RTO: about 1 hour to rebuild the EC2 instance by hand and 30 to 60 minutes for an RDS point-in-time restore. Everything runs in `ap-southeast-2`, so a region-wide outage is not covered; cross-region snapshot copies and S3 replication would be the next step if that mattered. A restore has not been rehearsed yet.
+*Targets:* 
+- RPO: about 5 minutes for the database, the interval of RDS transaction log backups; zero for code. 
+- RTO: about 1 hour to rebuild the EC2 instance by hand and 30 to 60 minutes for an RDS point-in-time restore. Everything runs in `ap-southeast-2`, so a region-wide outage is not covered; cross-region snapshot copies and S3 replication would be the next step if that mattered. A restore has not been rehearsed yet.
 
 With a retention of 1 day, point-in-time restore only reaches back 24 hours: a bad migration or deletion noticed later cannot be undone. Raising the retention to 7 days is the cheapest improvement here, since backup storage up to the database size is free.
 
@@ -657,7 +645,7 @@ Risk: `backend/prisma/seed.ts` deletes all rows before seeding and must never be
 
 - The API is stateless: sessions are JWTs, not server memory, so more instances can be added behind a load balancer without sticky sessions.
 - Image bytes go straight between the browser and S3, which scales on its own; the API only signs and records.
-- The client is static files, ready to move to S3 and CloudFront.
+- The client is static files, ready to move to S3 and CloudFront @aws_cloudfront.
 - GitHub Actions provides build capacity on demand, so the production instance does not need to be sized for builds.
 
 *Current limits.* One `t3.micro` (2 vCPU burstable, 1 GB RAM) with no automatic scaling. Burstable CPU credits can run out under sustained load. Scaling today means manual vertical scaling: stop the instance and change the instance type, with downtime. RDS can be resized the same way.
@@ -710,7 +698,7 @@ Not yet done: no CDN or HTTP caching headers, no pagination on `GET /places` (fi
   )
 ]
 
-The account is on the AWS free tier (confirmed by Mathias Jørgensen). How much is covered depends on which kind \[legacy or credit-based, to be confirmed\]: accounts created before 15 July 2025 have the 12-month free tier (750 hours of a micro instance for EC2 and for RDS), while newer accounts get credits of up to \$200 and, on the free plan, are closed when the credits run out or after six months (R-6).
+The account is on the AWS free tier. th
 
 *Decisions taken for cost.*
 
@@ -735,7 +723,7 @@ The account is on the AWS free tier (confirmed by Mathias Jørgensen). How much 
     [Client built in CI], [Production VM stays small], [Deploy depends on GitHub Actions],
     [Presigned POST direct to S3], [No image traffic on the VM, size enforced by S3], [Images are public; replaced files stay in the bucket],
     [JWT in `localStorage`], [Simple, stateless, works across tabs], [Exposed to XSS; no server-side logout],
-    [Let's Encrypt and DuckDNS], [Free HTTPS on a named domain], [Depends on free external services (R-10)],
+    [Let's Encrypt and DuckDNS], [Free HTTPS on a named domain], [Depends on free external services],
     [PM2 restart on deploy], [Simple and reliable], [A few seconds of downtime per deploy],
   )
 ]
@@ -760,7 +748,7 @@ The account is on the AWS free tier (confirmed by Mathias Jørgensen). How much 
 
 == Accessing the Application
 
-Open `https://ourtearoa.duckdns.org` in a current desktop or mobile browser (for example Chrome, Firefox, Safari or Edge). No installation is needed. The site is served over HTTPS only; a request to `http://` is redirected to `https://`. The address bar shows a valid Let's Encrypt certificate.
+Open `https://ourtearoa.duckdns.org` in a current desktop or mobile browser (for example Chrome, Firefox, Safari or Edge). No installation is needed. The site is served over HTTPS only; a request to `http://` is redirected to `https://`. The address bar shows a valid Let's Encrypt certificate .
 
 Browsing places and reading reviews works without an account. Saving favourites, planning visits, writing reviews and uploading photos require a free account (Step 2). On screens of 768 px or less the place detail covers the full screen.
 
@@ -907,18 +895,21 @@ OurTearoa is a working three-tier cloud application: an Angular client, an Expre
   [Git collaboration without history rewriting], [Feature branches, reviewed pull requests linked to issues, no force-push],
 )
 
-All functional requirements are met except the contributor stories US-14 and US-15, which exist in the API but have no screen and no ownership model (#link(<app-user-stories>)[Appendix B]). Beyond the brief, the deployment is automated with tests before every deploy, and the system is evaluated for security, availability, backup, scalability, performance and cost in @sec-quality. The main gaps are known and tracked: the RDS endpoint is still publicly accessible for development (issue \#15), the team shares one AWS administrator (issue \#17), and there is no monitoring or alerting yet.
+All functional requirements are met except the contributor stories US-14 and US-15, which exist in the API but have no screen and no ownership model (#link(<app-user-stories>)[Appendix B]). Beyond the brief, the deployment is automated with tests before every deploy, and the system is evaluated for security, availability, backup, scalability, performance and cost in @sec-quality.
 
 == Critical Engineering Reflections & Lessons Learned
 
-*Working within 1 GB of memory.*
-
+/ Working within 1 GB of memory:
 The `t3.micro` was chosen for cost, and that choice shaped more of the design than expected. Building the Angular client needs more memory than the instance has, so the production build was moved to GitHub Actions and only the compiled files are copied to the server. A swap file protects the running API from the OOM killer. The same reasoning led to uploading images directly from the browser to S3 instead of through the API. The lesson: on a small instance, keep build work and bulk data off the server and give it only the job of serving requests.
 
-*Deployment needs to be repeatable, not just automated.* Several problems appeared only in the pipeline: wrong secret interpolation in the deploy step, the backend deployed from the wrong directory, two overlapping runs deleting each other's `node_modules`, and SELinux blocking Nginx from reading newly copied files. Each fix (a `concurrency` group, restoring the SELinux context, pinned Prisma via `npx --no`, `migrate deploy` only) made the deploy more predictable. Running the client tests before every deploy turned the pipeline from a copy step into a quality gate.
+/ Deployment needs to be repeatable, not just automated:
+Several problems appeared only in the pipeline: wrong secret interpolation in the deploy step, the backend deployed from the wrong directory, two overlapping runs deleting each other's `node_modules`, and SELinux blocking Nginx from reading newly copied files. Each fix (a `concurrency` group, restoring the SELinux context, pinned Prisma via `npx --no`, `migrate deploy` only) made the deploy more predictable. Running the client tests before every deploy turned the pipeline from a copy step into a quality gate.
 
-*Security is layered, and some layers are still open.* TLS is used on every hop: Let's Encrypt at Nginx, `sslmode=verify-full` with the AWS CA bundle to RDS, and HTTPS to S3. The EC2 instance uses an IAM role, so no AWS keys exist on the server, and the API checks ownership on every user-owned row. A distinct `503` reason in the health check (`timeout` versus `unreachable`) made it quick to tell a security group problem from a credential problem. What we would do differently: make RDS private from the start and give each team member their own IAM user, instead of opening developer IP addresses and sharing one administrator.
+/ Security is layered, and some layers are still open.:
+TLS is used on every hop: Let's Encrypt at Nginx, `sslmode=verify-full` with the AWS CA bundle to RDS, and HTTPS to S3. The EC2 instance uses an IAM role, so no AWS keys exist on the server, and the API checks ownership on every user-owned row. A distinct `503` reason in the health check (`timeout` versus `unreachable`) made it quick to tell a security group problem from a credential problem. What we would do differently: make RDS private from the start and give each team member their own IAM user, instead of opening developer IP addresses and sharing one administrator.
 
-*Teamwork.* Splitting work into GitHub issues and small pull requests with review kept both members informed and the history readable. The bottleneck was AWS console access, held by one member; documenting the setup in `docs/` reduced but did not remove that dependency.
+/ Teamwork:
+Splitting work into GitHub issues and small pull requests with review kept both members informed and the history readable. The bottleneck was AWS console access, held by one member; documenting the setup in `docs/` reduced but did not remove that dependency.
 
-*Production enhancements.* For real traffic, the next steps are those in @sec-tradeoffs: monitoring and a budget alert first, then serving the client and images through CloudFront, and finally an Application Load Balancer with an Auto Scaling Group across two Availability Zones and RDS Multi-AZ. Because the API is stateless and all data lives in RDS and S3, these steps need little or no change to the application code. A cache such as ElastiCache (Redis) for the public place catalogue could be added if database reads become the bottleneck.
+/ Production enhancements: 
+For real traffic, the next steps are those in @sec-tradeoffs: monitoring and a budget alert first, then serving the client and images through CloudFront, and finally an Application Load Balancer with an Auto Scaling Group across two Availability Zones and RDS Multi-AZ. Because the API is stateless and all data lives in RDS and S3, these steps need little or no change to the application code. A cache such as ElastiCache (Redis) for the public place catalogue could be added if database reads become the bottleneck.
