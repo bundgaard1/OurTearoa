@@ -76,7 +76,7 @@
   columns: (1.6fr, 3.6fr),
   inset: 8pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
-  [ *Presentation Video* ], [ #link("Insert link here")[Presentation Video (Public URL, < 5 minutes)] ],
+  [ *Presentation Video* ], [ #link("https://youtu.be/RNysyNhTvGI") ],
   [ *GitHub Repository* ], [ #link("https://github.com/bundgaard1/OurTearoa") ],
   [ *Live Web Client URL* ], [ #link("https://ourtearoa.duckdns.org") ],
   [ *Live REST API Base* ], [ #link("https://ourtearoa.duckdns.org/api") ]
