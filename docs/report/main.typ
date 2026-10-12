@@ -261,9 +261,31 @@ The schedule follows the issue history in GitHub (created and closed dates). The
 Most of the feature work happened in the last two weeks, once the cloud skeleton was stable.
 
 == Meeting Minutes & Collaboration Logs
-#prompt("What to write", [
-  - Document regular coordination syncs between Mathias and Tim (dates, decisions, task assignments).
-])
+
+The project started with one formal kick-off meeting. After that, the team coordinated asynchronously on GitHub instead of holding recurring meetings: tasks were assigned through issues, questions and decisions were recorded as issue comments, and every change was discussed in a pull request review. This kept decisions traceable and fitted the two members' different schedules. The issue and pull request history therefore serves as the collaboration log.
+
+*Kick-off meeting, 6 August 2026* (about 4 hours; agenda in issue \#1, minutes in issue \#2)
+- Agenda: define the project scope, determine roles, choose and challenge the tech stack, start the GitHub repository.
+- Decisions: a map-based travel web app; Angular with Leaflet and OpenStreetMap for the client; a TypeScript/Express API on a single EC2 instance; AWS RDS PostgreSQL and S3 for data and images; GitHub Actions for CI/CD.
+- Actions: Tim Schiller created the first work packages as issues (\#3 to \#12: scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added RDS security and IAM access (\#15, \#17) and took over the RDS provisioning (\#5).
+
+*Coordination log (from GitHub issues and pull requests)*
+
+#text(size: 9pt)[
+  #table(
+    columns: (auto, auto, 1fr),
+    inset: 5.5pt,
+    stroke: 0.5pt + rgb("#cbd5e0"),
+    table.header([*Date*], [*Where*], [*Decision or outcome*]),
+    [29-30 Sep 2026], [\#8, \#9, \#11], [Cloud skeleton accepted: public API URL live, client served over HTTPS with a Let's Encrypt certificate, deploy on every merge. Mathias Jørgensen documented the HTTPS acceptance checklist in \#9.],
+    [4 Oct 2026], [\#5, \#29 to \#44], [Decision to store plain latitude and longitude instead of PostGIS, because no screen needs spatial queries (comment by Tim Schiller in \#5). Backend API split into one issue per resource; Tim Schiller implements the endpoints and the curl smoke test.],
+    [5-6 Oct 2026], [\#30, \#47], [`JWT_SECRET` set on the server before the auth deploy. Production migration failure reported and fixed by Mathias Jørgensen.],
+    [6 Oct 2026], [\#48 to \#70], [Client work split into 23 issues (shell, auth, catalogue, detail panel, map, reviews, favourites, itinerary, profile, CI tests), created by Mathias Jørgensen. Most screens were then implemented by Tim Schiller and reviewed by Mathias Jørgensen in pull requests.],
+    [9 Oct 2026], [\#72, \#87], [Decision to store images in S3 instead of an upload directory on EC2 (\#72 closed, \#87 opened). Responsibilities agreed: Mathias Jørgensen sets up the bucket and IAM role, Tim Schiller builds the presigned upload in the API and client (\#71, \#73).],
+    [11 Oct 2026], [\#104, \#106], [Failing image upload diagnosed and fixed by attaching the IAM instance profile and S3 CORS (Mathias Jørgensen). Deploy workflow made reliable by regenerating the Prisma client and serialising runs (Tim Schiller).],
+    [11-12 Oct 2026], [\#108 to \#129], [Report and evidence split into issues: requirements and quality sections, final AWS values, screenshots, report sections. Mathias Jørgensen confirmed the AWS console values and reviewed and merged the report pull requests.],
+  )
+]
 
 // ==========================================
 // 4. WORKLOG & COLLABORATION EVIDENCE
