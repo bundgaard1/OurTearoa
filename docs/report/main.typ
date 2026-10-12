@@ -270,11 +270,9 @@ Most of the feature work happened in the last two weeks, once the cloud skeleton
 // ==========================================
 = Worklog and Collaboration Evidence
 
-== Project Management Evidence (Trello / Kanban)
-#prompt("What to write & Screenshots", [
-  - Provide URL to your online board.
-  - Insert snapshots of task cards showing issue tracking, checklist completion, and timestamps.
-])
+== Project Management Evidence (GitHub Projects / Kanban)
+
+Instead of Trello, the team used GitHub Issues with a GitHub Projects Kanban board, so that tasks, code and reviews live in one place (#link("https://github.com/bundgaard1/OurTearoa/issues?q=is%3Aissue")[issue list]). Tasks from the WBS became issues with a short description, usually a checklist of acceptance criteria, and an assignee; the board shows each issue's status from backlog to done. Each issue was implemented on its own feature branch and closed by a pull request that references it ("Closes \#N"), so every finished task links to the code that delivered it. GitHub records when an issue was opened, updated and closed, which provides the timestamps for the schedule in the previous section. Over the project, 63 issues were created and 61 pull requests merged.
 
 #figure(
   image("media/screenshots/kanban.png", width: 100%),
@@ -292,10 +290,21 @@ Most of the feature work happened in the last two weeks, once the cloud skeleton
 )
 
 == Git Repository Contributions
-#prompt("What to write & Screenshots", [
-  - Provide evidence of commits from both Mathias and Tim showing balanced contributions across frontend, backend, and cloud config.
-  - Show GitHub Insights commit distribution and confirm no commit history rewriting was performed.
-])
+
+Both members contributed throughout the project in the shared repository #link("https://github.com/bundgaard1/OurTearoa")[`bundgaard1/OurTearoa`]. Excluding merge commits, `main` contains 46 commits by Mathias Jørgensen and 45 by Tim Schiller (`git shortlog -sn --no-merges`). The split by area reflects the division of work in the member contributions table:
+
+#table(
+  columns: (1.6fr, 1fr, 1fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Area (path)*], [*Mathias Jørgensen*], [*Tim Schiller*]),
+  [Client (`client/`)], [9], [20],
+  [Backend (`backend/`)], [14], [9],
+  [Cloud and CI/CD config (`.github/`, `infra/`)], [7], [2],
+  [Documentation and report (`docs/`, `DESIGN.md`)], [23], [17],
+)
+
+Commits touching several areas are counted in each. Four further commits came from the GitHub Copilot coding agent (two CI fixes, see Appendix A). Work was done on feature branches and merged into `main` through 61 reviewed pull requests; `main` was never force-pushed and no commit history was rewritten, so the history shows each member's contributions as they happened.
 
 #figure(
   image("media/screenshots/contributions.png", width: 100%),
@@ -575,7 +584,7 @@ curl -i https://ourtearoa.duckdns.org/api/health
 
 = Cloud Engineering Quality <sec-quality>
 
-This section evaluates the deployed system against the quality attributes in @sec-requirements and states the trade-offs made. Console values were confirmed by Mathias Jørgensen in issue \#109; the few left in square brackets are still open.
+This section evaluates the deployed system against the quality attributes in @sec-requirements and states the trade-offs made. Console values were confirmed by Mathias Jørgensen in pull request \#109.
 
 == Security <sec-security>
 
@@ -852,22 +861,55 @@ All endpoints are under `/api` and speak JSON. Responses are `200`/`201` on succ
   )
 ]
 
-== Postman & Smoke Test Verification Evidence
-#prompt("What to write & Screenshots", [
-  - Show terminal output executing `scripts/api-smoke-test.sh https://ourtearoa.duckdns.org/api`.
-  - Include Postman screenshots showing request headers, live cloud URL, payload, and JSON responses for key POST and GET endpoints.
-])
+== API Test and Smoke Test Evidence
+
+The API was tested with scripts rather than Postman, so that the tests are repeatable and stored in the repository. `scripts/api-smoke-test.sh` calls every endpoint against a given base URL with `curl`: it registers a temporary user, logs in to obtain a JWT, exercises places, favourites, itinerary and reviews including error cases (`400`, `401`, `404`, `409`), and finally deletes the user again. The run against the public cloud URL passed all 45 checks (`docs/evidence/api-smoke-test-public.log`):
 
 #figure(
   image("media/screenshots/2-06-api-connection.png", width: 100%),
   caption: [`GET /api/health` on the public URL returning `"status":"UP"` and `"database":"UP"`],
 )
 
-#img-placeholder("Figure 8.2: Postman Test - POST /auth/register and POST /auth/login issuing JWT")
+#figure(
+  block(fill: rgb("#f7fafc"), inset: 8pt, radius: 3pt, width: 100%, align(left, text(size: 8pt)[```
+Run: 2026-10-11T22:06:06Z
+Command: scripts/api-smoke-test.sh https://ourtearoa.duckdns.org/api
 
-#img-placeholder("Figure 8.3: Postman Test - POST /itinerary with JSON payload (201 Created)")
+PASS  GET  /health                                         200
+PASS  POST /auth/register                                  201
+PASS  POST /auth/register (duplicate email)                409
+PASS  POST /auth/register (invalid input)                  400
+PASS  POST /auth/login (wrong password)                    401
+PASS  POST /auth/login                                     200
+...
+PASS  POST /itinerary (end before start)                   400
+PASS  GET  /itinerary                                      200
+PASS  PUT  /itinerary/:id                                  200
+PASS  DELETE /itinerary/:id                                204
+PASS  POST /reviews (rating out of range)                  400
+PASS  POST /reviews                                        201
+...
+PASS  DELETE /users/me (cleanup)                           204
+PASS  GET  /users/me (after delete)                        404
 
-#img-placeholder("Figure 8.4: Automated Smoke Test Script Output (api-smoke-test.sh)")
+Result: 45 passed, 0 failed, 0 skipped
+```])),
+  caption: [Excerpt of the smoke test run against the public API],
+)
+
+The S3 image upload was tested end to end in the same way (`docs/evidence/s3-upload-public.log`). The browser-side upload goes straight to S3 without an `Authorization` header, and S3 itself rejects a file over 5 MB because of the signed policy:
+
+#figure(
+  block(fill: rgb("#f7fafc"), inset: 8pt, radius: 3pt, width: 100%, align(left, text(size: 8pt)[```
+POST /places/:id/image-upload-url                            201
+  upload url: https://ourtearoa-storage.s3.ap-southeast-2.amazonaws.com/
+POST <S3 bucket> multipart upload, no Authorization header   204
+POST <S3 bucket> upload over 5 MB (rejected by S3 policy)    400
+POST /places/:id/image (confirm)                             200
+HEAD imageUrl (public read from S3)                          200 server=AmazonS3 type=image/png
+```])),
+  caption: [Excerpt of the S3 presigned upload test against the public API],
+)
 
 #pagebreak()
 
