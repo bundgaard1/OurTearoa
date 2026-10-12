@@ -1,5 +1,6 @@
 direction: right
 
+
 **.style.font-size: 30
 (** -> **)[*].style.font-size: 30
 (** -> **)[*].style.font-color: black
@@ -8,7 +9,7 @@ direction: right
 # Entity: users
 users: {
   shape: sql_table
-  id: "String [PK, UUID]"
+  id: "String [ UUID]" {constraint: primary_key}
   email: "String [UQ]"
   password: "String"
   name: "VarChar(100)"
@@ -19,7 +20,7 @@ users: {
 # Entity: places
 places: {
   shape: sql_table
-  id: "String [PK, UUID]"
+  id: "String [UUID]"{constraint: primary_key}
   name: "VarChar(200)"
   region: "VarChar(100)"
   description: "String?"
@@ -34,9 +35,9 @@ places: {
 # Entity: reviews
 reviews: {
   shape: sql_table
-  id: "String [PK, UUID]"
-  place_id: "String [FK -> places.id]"
-  user_id: "String [FK -> users.id]"
+  id: "String [UUID]" {constraint: primary_key}
+  place_id: "String" {constraint: foreign_key}
+  user_id: "String" {constraint: foreign_key}
   rating: "SmallInt"
   comment: "String?"
   created_at: "DateTime"
@@ -46,18 +47,18 @@ reviews: {
 # Entity: favorites
 favorites: {
   shape: sql_table
-  id: "String [PK, UUID]"
-  place_id: "String [FK -> places.id]"
-  user_id: "String [FK -> users.id]"
+  id: "String [UUID]" {constraint: primary_key}
+  place_id: "String" {constraint: foreign_key}
+  user_id: "String" {constraint: foreign_key}
   created_at: "DateTime"
 }
 
 # Entity: itinerary_entries
 itinerary_entries: {
   shape: sql_table
-  id: "String [PK, UUID]"
-  place_id: "String [FK -> places.id]"
-  user_id: "String [FK -> users.id]"
+  id: "String [UUID]" {constraint: primary_key}
+  place_id: "String" {constraint: foreign_key}
+  user_id: "String" {constraint: foreign_key}
   start_date: "DateTime"
   end_date: "DateTime"
   note: "String?"

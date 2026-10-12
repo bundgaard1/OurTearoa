@@ -28,7 +28,7 @@
     + "Implement this GitHub issue in the Angular client against the existing REST endpoints, including loading, empty and error states and unit tests."
     + "The deploy workflow fails at this step; here is the log. Find the cause and propose a fix."
     + "Review my changes for bugs and security issues before I open the pull request."
-    + "Transfer the content of `DESIGN.md` into the report and check it against the current code and AWS setup."
+    + "Write out a outline of the content of `DESIGN.md` into the report and check it against the current code and AWS setup."
   ],
   table.cell(fill: rgb("#edf2f7"))[*Provide a summary or description of the AI-generated output. (Optional: attach output in an appendix.)*],
   [
@@ -90,7 +90,7 @@ These are the core requirements of the system; every other design decision in th
   )
 ]
 
-== Contributor (Later-Stage Feature)
+== Contributor 
 
 #text(size: 9pt)[
   #table(
@@ -103,7 +103,6 @@ These are the core requirements of the system; every other design decision in th
   )
 ]
 
-US-16 (contributor image upload to cloud storage) was removed as a separate story. Place images are covered by the S3 presigned direct upload (issues \#71, \#73 and \#87): any signed-in user can attach a photo on the place detail panel. An earlier plan to store images on the EC2 disk was dropped: it would put upload traffic and storage on the 1 GB `t3.micro`, and every image would be lost if the instance were replaced.
 
 == Evaluator / Operations
 

@@ -35,9 +35,21 @@
     #it.body
   ]
 
+
+  show table: it => [
+    #set table( fill: (x, y) => if y == 0 { luma(230) })
+    #set text(size: 10pt)
+    #it
+  ]
+
+  show link: it => [
+    #set text(fill: blue.darken(20%), weight: "medium")
+    #underline(it)
+  ]
   // Figure setup for diagrams/tables
   // set figure(placement: auto)
   show figure.caption: set text(size: 9pt, style: "italic")
+  
   
   // Code block styling (crucial for software architecture)
   show raw: set text(font: "New Computer Modern")
