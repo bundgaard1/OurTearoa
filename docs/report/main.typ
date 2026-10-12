@@ -281,6 +281,16 @@ Most of the feature work happened in the last two weeks, once the cloud skeleton
   caption: [Kanban board of the GitHub project],
 )
 
+#figure(
+  image("media/screenshots/issues-closed.png", width: 100%),
+  caption: [Closed GitHub issues; the pull request icon marks issues closed by a linked pull request],
+)
+
+#figure(
+  image("media/screenshots/issue-87.png", width: 85%),
+  caption: [Example issue (\#87, S3 bucket) with task checklist, project status and linked pull requests],
+)
+
 == Git Repository Contributions
 #prompt("What to write & Screenshots", [
   - Provide evidence of commits from both Mathias and Tim showing balanced contributions across frontend, backend, and cloud config.
@@ -537,6 +547,25 @@ curl -i https://ourtearoa.duckdns.org/api/health
   caption: [GitHub Actions workflow run showing the automated deployment steps],
 )
 
+#figure(
+  image("media/screenshots/actions-runs.png", width: 100%),
+  caption: [GitHub Actions: CI/CD deployment runs, one per merge to `main`],
+)
+
+#figure(
+  image("media/screenshots/actions-client-tests.png", width: 100%),
+  caption: [Deploy run: client unit tests (136 tests in 23 files passed) and production build before deployment],
+)
+
+#figure(
+  image("media/screenshots/actions-deploy-frontend.png", width: 100%),
+  caption: [Deploy run: compiled client copied to the Nginx web root with rsync],
+)
+
+#figure(
+  image("media/screenshots/actions-deploy-backend.png", width: 100%),
+  caption: [Deploy run: Prisma client generated, `prisma migrate deploy` ("No pending migrations to apply") and the API restarted under PM2],
+)
 
 #pagebreak()
 
@@ -729,23 +758,53 @@ If a page cannot load its data, it shows an error message with a *Retry* button 
 
 *Step 1: Browse and filter places.* The start page `/places` lists every place as a card. Type in _Search_ to filter by name, or choose a _Region_ (default _All regions_). _Clear filters_ resets both. Select a card to open the detail panel next to the list. It shows the photo, region, type, description, a map (OpenStreetMap) when coordinates are known, and the reviews. _Close_ returns to the list. The panel has its own URL (`/places/:id`), so a place can be bookmarked or shared.
 
+#figure(
+  image("media/UI/ui-1-places-filter.png", width: 85%),
+  caption: [Place catalogue filtered by region (West Coast)],
+)
+
+#figure(
+  image("media/UI/ui-2-place-detail.png", width: 85%),
+  caption: [Place detail panel opened next to the catalogue],
+)
+
+#figure(
+  grid(
+    columns: 2,
+    gutter: 8pt,
+    image("media/UI/ui-3-place-detail-map-plan.png", width: 100%),
+    image("media/UI/ui-4-place-detail-reviews.png", width: 100%),
+  ),
+  caption: [Detail panel continued: map and "Plan a visit" form (left), reviews and review form (right)],
+)
+
 *Step 2: Create an account and log in.* Select _Register_ in the header, enter name, email and a password of at least 8 characters, and select _Create account_. You are signed in straight away. Returning users select _Login_. If you choose _Log in_ from a place's detail panel, you return to that place afterwards. A session lasts 7 days; after that, the next action asks you to log in again. _Logout_ in the header ends the session.
 
 *Step 3: Save favourites.* On any card or detail panel, select _♡ Save_. The button changes to _♥ Saved_; selecting it again removes the favourite. _Favourites_ in the header lists all saved places, each with _Remove_ and a link back to its detail panel.
 
+#figure(
+  image("media/UI/ui-6-favourites.png", width: 85%),
+  caption: [Favourites page],
+)
+
 *Step 4: Plan a visit.* In the _Plan a visit_ section of the detail panel, choose a start date and an end date (the end date must not be before the start date), add an optional note, and select _Add to itinerary_. _Itinerary_ in the header lists all entries ordered by start date. Each entry can be changed with _Edit_ (_Save changes_) or deleted with _Remove_.
+
+#figure(
+  image("media/UI/ui-5-itinerary.png", width: 85%),
+  caption: [Itinerary ordered by start date],
+)
 
 *Step 5: Rate and review a place.* In the _Reviews_ section of the detail panel, select 1 to 5 stars, write an optional comment and select _Post review_. Your own reviews show _Edit_ and _Delete_; other users' reviews cannot be changed.
 
 *Step 6: Add a photo.* Signed-in users can select _Upload a photo_ in the detail panel and choose a JPEG, PNG or WebP file of up to 5 MB. The image is uploaded directly to cloud storage (S3) and replaces the current photo.
 
-*Step 7: Manage the account.* Select your name in the header to open _Profile_, which shows name, email and _Member since_. _Delete account_1_ asks for confirmation and then permanently removes the account together with its reviews, favourites and itinerary entries.
+*Step 7: Manage the account.* Select your name in the header to open _Profile_, which shows name, email and _Member since_. _Delete account_ asks for confirmation and then permanently removes the account together with its reviews, favourites and itinerary entries.
 
-#img-placeholder("Figure 7.1: UI Walkthrough - Place Catalogue and Regional Filtering")
+#figure(
+  image("media/UI/ui-7-profile.png", width: 85%),
+  caption: [Profile page with account deletion],
+)
 
-#img-placeholder("Figure 7.2: UI Walkthrough - Split-View Place Detail with Map and Reviews")
-
-#img-placeholder("Figure 7.3: UI Walkthrough - Itinerary Builder Ordered by Date")
 
 // ==========================================
 // 9. RESTFUL API LIST
