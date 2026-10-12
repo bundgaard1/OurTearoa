@@ -226,6 +226,8 @@ Architecturally, the application enforces a strict separation of concerns throug
   caption: [Entity-Relationship Diagram (ERD) of PostgreSQL Database Schema],
 )
 
+=== Design Notes
+
 == Object Storage Architecture (AWS S3)
 
 #prompt("What to write", [
@@ -237,7 +239,7 @@ Architecturally, the application enforces a strict separation of concerns throug
 // 6. DETAILS ON CLOUD IMPLEMENTATION
 // ==========================================
 
-= 6. Details on Cloud Implementation
+= 6. Cloud Implementation / Setup Evidence
 
 == 6.1 Compute Provisioning & System Hardening (AWS EC2)
 #prompt("What to write & Screenshots", [
@@ -282,6 +284,8 @@ Architecturally, the application enforces a strict separation of concerns throug
 
 #pagebreak()
 
+
+= Cloud Engineering Quality 
 // ==========================================
 // 7. USER MANUAL
 // ==========================================
