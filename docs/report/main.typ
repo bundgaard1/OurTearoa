@@ -88,8 +88,8 @@
   columns: (1.2fr, 1fr, 3fr),
   stroke: 0.5pt + rgb("#cbd5e0"),
   [ *Member Name* ], [ *Student ID* ], [ *Assigned Components & Cloud Tasks* ],
-  [ Mathias Jorgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, Backend API Development (Express/Prisma), S3 asset integration ],
-  [ Tim Schiller ], [ 26347002 ], [ Frontend SPA Development (Angular 22, Signals), Project Manager, JWT Auth Architecture, Nginx/Certbot TLS setup, GitHub Actions CI/CD Pipeline ]
+  [ Mathias Jorgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, S3 asset integration, GitHub Actions CI/CD Pipeline, Nginx/Certbot TLS setup, ],
+  [ Tim Schiller ], [ 26347002 ], [ Frontend SPA Development (Angular 22, Signals), Project Manager, JWT Auth Architecture, Backend API Development (Express/Prisma), RESTful Endpoints, Curl Smoke Test ],
 )
 
 #pagebreak()
