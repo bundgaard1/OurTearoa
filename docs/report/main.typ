@@ -232,19 +232,49 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
 = Project Management
 
 == Work Breakdown Structure (WBS)
-#prompt("What to write & Artifact", [
-  - Break down development across sprints: AWS infrastructure setup, Database migrations, Backend REST controllers, Angular client views, CI/CD pipeline automation, and smoke testing.
-  - Insert WBS visual diagram.
-])
+The work was broken down into six work packages and tracked as GitHub issues (issue numbers in brackets). Each issue was implemented on a feature branch and merged through a reviewed pull request.
 
-#img-placeholder("Figure 3.1: Work Breakdown Structure (WBS)")
+#figure(
+  text(size: 9pt)[
+    #table(
+      columns: (auto, 1fr, 2.4fr),
+      inset: 5.5pt,
+      stroke: 0.5pt + rgb("#cbd5e0"),
+      table.header([*WP*], [*Work package*], [*Tasks (GitHub issues)*]),
+      [1], [Project setup], [Kick-off meeting and minutes (\#1, \#2); repository scaffolding and conventions (\#3); local hello-world slice (\#4)],
+      [2], [AWS infrastructure], [Provision RDS PostgreSQL (\#5); backend database round-trip (\#6); provision and configure EC2 (\#7); public API URL (\#8); HTTPS for the client (\#9); S3 bucket and IAM role (\#87); secrets, RDS security and IAM access (\#10, \#15, \#17, open)],
+      [3], [CI/CD], [GitHub Actions deploy (\#11); production migration fixes (\#47); client tests in CI (\#70); Prisma client regeneration and serialised deploys (\#104)],
+      [4], [Backend REST API], [JWT authentication (\#29, \#30); favourites, itinerary, reviews, users and places endpoints (\#31 to \#35, \#44); S3 presigned image upload (\#71, \#106)],
+      [5], [Angular client], [Core models, design tokens, auth store and interceptor (\#48 to \#50); app shell, login, register, auth guard (\#51 to \#54); catalogue, detail panel, filter, map, reviews (\#55 to \#62); favourites, itinerary, profile (\#63 to \#68); image upload (\#73)],
+      [6], [Testing, evidence and documentation], [API curl script and public smoke test (\#36, \#43); evidence pack (\#12); design document (\#69, \#108, \#112); screenshots (\#111); report (\#115, \#118)],
+    )
+  ],
+  caption: [Work Breakdown Structure (WBS)],
+)
 
 == Schedule, Milestones & Sprint Progress
-#prompt("What to write & Artifact", [
-  - Show milestone progression from project kickoff, API smoke test validation, to production deployment.
-])
 
-#img-placeholder("Figure 3.2: Project Timeline & Milestone Delivery Schedule")
+The schedule follows the issue history in GitHub (created and closed dates). The project ran from the kick-off on 6 August 2026 to the submission on 16 October 2026.
+
+#figure(
+  text(size: 9pt)[
+    #table(
+      columns: (auto, 1.2fr, 2.2fr),
+      inset: 5.5pt,
+      stroke: 0.5pt + rgb("#cbd5e0"),
+      table.header([*Period*], [*Phase*], [*Milestones reached*]),
+      [6-7 Aug 2026], [Kick-off and planning], [Start meeting and minutes; requirements and user stories; work packages 1 to 6 created as issues],
+      [Aug to Sep 2026], [Cloud skeleton], [RDS round-trip and public API URL live (29 Sep); client served over HTTPS and CI/CD deploying on every merge (30 Sep)],
+      [4-6 Oct 2026], [Backend API], [JWT auth and all REST endpoints implemented; curl script for every endpoint; production migrations fixed],
+      [6-11 Oct 2026], [Angular client and S3], [All client screens (9-11 Oct); client tests in CI; S3 bucket and IAM role (9-11 Oct); image upload working end to end (11 Oct)],
+      [11-12 Oct 2026], [Evidence and design], [Public smoke test log and evidence pack (11 Oct); requirements and quality sections; final AWS values and screenshots (12 Oct)],
+      [12-16 Oct 2026], [Report and video], [Report written; submission on 16 October 2026],
+    )
+  ],
+  caption: [Project timeline and milestone delivery schedule],
+)
+
+Most of the feature work happened in the last two weeks, once the cloud skeleton was stable. The open security issues (\#10, \#15, \#17) were not finished before submission and are listed as future improvements in @sec-tradeoffs.
 
 == Meeting Minutes & Collaboration Logs
 #prompt("What to write", [
