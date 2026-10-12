@@ -1,5 +1,56 @@
 = Appendix A: AI Usage Declaration form
 
+#table(
+  columns: (1fr),
+  inset: 7pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.cell(fill: rgb("#edf2f7"))[*Please list the tasks in your assignment where AI was used.*],
+  [
+    - Coding assistance for the Angular client and the Express API (for example feature components, form validation, controllers and unit tests).
+    - Troubleshooting the deployment: GitHub Actions workflow, Nginx, PM2 and the S3 upload flow.
+    - Drafting and restructuring technical documentation (`DESIGN.md`, setup guides) and parts of this report.
+    - Wording of GitHub issues and pull request descriptions, and reviewing our own changes before merging.
+  ],
+  table.cell(fill: rgb("#edf2f7"))[*For each task, explain why the AI tool was used (e.g., idea generation, summarization, coding, etc.).*],
+  [
+    - *Coding:* to speed up routine implementation so that more time was left for the cloud architecture, which is the focus of the course.
+    - *Debugging:* to interpret error messages and logs from the pipeline and the server faster.
+    - *Writing and summarization:* to turn our design decisions, notes and evidence into structured text, and to check the report for consistency.
+    - *Review:* as a second reviewer that points out bugs, missing edge cases and inconsistencies.
+  ],
+  table.cell(fill: rgb("#edf2f7"))[*Please state the AI tools used.*],
+  [
+    - Abacus.AI Agent (AI coding assistant in the IDE)
+    - GitHub Copilot coding agent (two pull requests fixing the deploy workflow, September 2026)
+  ],
+  table.cell(fill: rgb("#edf2f7"))[*List the main prompts (less than 5) or queries entered into the AI tool*],
+  [
+    + "Implement this GitHub issue in the Angular client against the existing REST endpoints, including loading, empty and error states and unit tests."
+    + "The deploy workflow fails at this step; here is the log. Find the cause and propose a fix."
+    + "Review my changes for bugs and security issues before I open the pull request."
+    + "Transfer the content of `DESIGN.md` into the report and check it against the current code and AWS setup."
+  ],
+  table.cell(fill: rgb("#edf2f7"))[*Provide a summary or description of the AI-generated output. (Optional: attach output in an appendix.)*],
+  [
+    Code changes on feature branches (components, controllers, tests and workflow fixes), explanations of errors with proposed fixes, review findings, and draft text for documentation, issues and pull requests. The resulting code and text can be traced in the Git history and the pull requests of the repository.
+  ],
+  table.cell(fill: rgb("#edf2f7"))[*Please describe how the AI output was used, edited, or transformed.*],
+  [
+    The architecture, the choice of AWS services, the AWS configuration and all trade-offs were decided by the team; the AWS resources were set up by hand in the console. AI output was treated as a draft: code changes went through pull requests that a team member reviewed before merging, and was checked by the client test suite, the smoke test and the live health check. Documentation and report text were checked against the actual code, the AWS console and the evidence in `docs/evidence/`, and corrected, shortened or rewritten where it was wrong, too general or not our wording. Suggestions that did not fit the project were rejected. We take full responsibility for the submitted work.
+  ],
+)
+
+#v(1em)
+
+#table(
+  columns: (1.2fr, 1.2fr, 0.8fr),
+  inset: 7pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  [*Student name(s):*], [*Signature(s):*], [*Date:*],
+  [Mathias Jørgensen (26344066)], [], [16 October 2026],
+  [Tim Schiller (26347002)], [], [16 October 2026],
+)
+
 = Appendix B: User Stories and Acceptance Criteria <app-user-stories>
 
 These are the core requirements of the system; every other design decision in this report traces back to one of the stories below.
