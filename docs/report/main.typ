@@ -733,17 +733,28 @@ The account is on the AWS free tier (confirmed by Mathias Jørgensen). How much 
 = User Manual
 
 == Accessing the Application
-#prompt("What to write", [
-  - Instructions for opening `https://ourtearoa.duckdns.org` in modern web browsers over HTTPS.
-])
+
+Open `https://ourtearoa.duckdns.org` in a current desktop or mobile browser (for example Chrome, Firefox, Safari or Edge). No installation is needed. The site is served over HTTPS only; a request to `http://` is redirected to `https://`. The address bar shows a valid Let's Encrypt certificate.
+
+Browsing places and reading reviews works without an account. Saving favourites, planning visits, writing reviews and uploading photos require a free account (Step 2). On screens of 768 px or less the place detail covers the full screen.
+
+If a page cannot load its data, it shows an error message with a *Retry* button instead of a blank screen. Whether the backend is up can be checked directly at `https://ourtearoa.duckdns.org/api/health`, which returns `{"status":"UP","database":"UP"}`.
 
 == End-User Workflow Walkthrough
-#prompt("What to write & Screenshots", [
-  - Step 1: Browsing Places and filtering destinations by region.
-  - Step 2: Account creation (`/register`) and authentication (`/login`).
-  - Step 3: Favouriting places and building a custom itinerary with start/end dates.
-  - Step 4: Submitting star ratings and comments on place detail views.
-])
+
+*Step 1: Browse and filter places.* The start page `/places` lists every place as a card. Type in *Search* to filter by name, or choose a *Region* (default *All regions*). *Clear filters* resets both. Select a card to open the detail panel next to the list. It shows the photo, region, type, description, a map (OpenStreetMap) when coordinates are known, and the reviews. *Close* returns to the list. The panel has its own URL (`/places/:id`), so a place can be bookmarked or shared.
+
+*Step 2: Create an account and log in.* Select *Register* in the header, enter name, email and a password of at least 8 characters, and select *Create account*. You are signed in straight away. Returning users select *Login*. If you choose *Log in* from a place's detail panel, you return to that place afterwards. A session lasts 7 days; after that, the next action asks you to log in again. *Logout* in the header ends the session.
+
+*Step 3: Save favourites.* On any card or detail panel, select *♡ Save*. The button changes to *♥ Saved*; selecting it again removes the favourite. *Favourites* in the header lists all saved places, each with *Remove* and a link back to its detail panel.
+
+*Step 4: Plan a visit.* In the *Plan a visit* section of the detail panel, choose a start date and an end date (the end date must not be before the start date), add an optional note, and select *Add to itinerary*. *Itinerary* in the header lists all entries ordered by start date. Each entry can be changed with *Edit* (*Save changes*) or deleted with *Remove*.
+
+*Step 5: Rate and review a place.* In the *Reviews* section of the detail panel, select 1 to 5 stars, write an optional comment and select *Post review*. Your own reviews show *Edit* and *Delete*; other users' reviews cannot be changed.
+
+*Step 6: Add a photo.* Signed-in users can select *Upload a photo* in the detail panel and choose a JPEG, PNG or WebP file of up to 5 MB. The image is uploaded directly to cloud storage (S3) and replaces the current photo.
+
+*Step 7: Manage the account.* Select your name in the header to open *Profile*, which shows name, email and *Member since*. *Delete account* asks for confirmation and then permanently removes the account together with its reviews, favourites and itinerary entries.
 
 #img-placeholder("Figure 7.1: UI Walkthrough - Place Catalogue and Regional Filtering")
 
@@ -819,14 +830,34 @@ All endpoints are under `/api` and speak JSON. Responses are `200`/`201` on succ
 
 = Summary
 
+OurTearoa is a working three-tier cloud application: an Angular client, an Express REST API on EC2, and managed PostgreSQL on RDS, with images in S3. It is publicly reachable over HTTPS and redeployed automatically on every merge to `main`.
+
 == Evaluation Against Brief
-#prompt("What to write", [
-  - Review project achievements against Option B requirements: fully decoupled 3-tier architecture, managed RDS persistence, public access, and automated CI/CD.
-])
+
+#table(
+  columns: (1.3fr, 2fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Option B requirement*], [*How OurTearoa meets it*]),
+  [Three tiers], [Angular SPA (client), Express 5 API (application), RDS PostgreSQL (data) (@sec-quality)],
+  [Client and API decoupled by REST], [The client only talks to `/api` over JSON; the API is usable without the client (@sec-api-overview)],
+  [At least 10 REST services, at least 3 `POST`], [25 endpoints, 8 of them `POST`],
+  [Cloud database, not installed on the VM], [AWS RDS for PostgreSQL 16 over verified TLS (@sec-db)],
+  [Assets in cloud object storage], [Place images in S3 via presigned direct upload (@sec-s3-flow)],
+  [Public URLs for client and API], [`https://ourtearoa.duckdns.org` and `https://ourtearoa.duckdns.org/api`],
+  [Git collaboration without history rewriting], [Feature branches, reviewed pull requests linked to issues, no force-push],
+)
+
+All functional requirements are met except the contributor stories US-14 and US-15, which exist in the API but have no screen and no ownership model (#link(<app-user-stories>)[Appendix B]). Beyond the brief, the deployment is automated with tests before every deploy, and the system is evaluated for security, availability, backup, scalability, performance and cost in @sec-quality. The main gaps are known and tracked: the RDS endpoint is still publicly accessible for development (issue \#15), the team shares one AWS administrator (issue \#17), and there is no monitoring or alerting yet.
 
 == Critical Engineering Reflections & Lessons Learned
-#prompt("What to write (Criterion 4 & Criterion 6)", [
-  - Memory Optimization: explain why running an Angular build on a `t3.micro` instance caused memory crashes, and how offloading the build step to GitHub Actions runners with a swap file fallback solved the problem.
-  - Cloud Security: discuss configuring TLS termination via Nginx, strict RDS security group scoping, and verified certificate authority bundles (`global-bundle.pem`).
-  - Production Enhancements: discuss how the architecture could be scaled commercially (e.g., placing the client on AWS CloudFront/S3 directly, utilizing an Application Load Balancer with Auto-Scaling Groups, and implementing Redis caching for place queries).
-])
+
+*Working within 1 GB of memory.* The `t3.micro` was chosen for cost, and that choice shaped more of the design than expected. Building the Angular client needs more memory than the instance has, so the production build was moved to GitHub Actions and only the compiled files are copied to the server. A swap file protects the running API from the OOM killer. The same reasoning led to uploading images directly from the browser to S3 instead of through the API. The lesson: on a small instance, keep build work and bulk data off the server and give it only the job of serving requests.
+
+*Deployment needs to be repeatable, not just automated.* Several problems appeared only in the pipeline: wrong secret interpolation in the deploy step, the backend deployed from the wrong directory, two overlapping runs deleting each other's `node_modules`, and SELinux blocking Nginx from reading newly copied files. Each fix (a `concurrency` group, restoring the SELinux context, pinned Prisma via `npx --no`, `migrate deploy` only) made the deploy more predictable. Running the client tests before every deploy turned the pipeline from a copy step into a quality gate.
+
+*Security is layered, and some layers are still open.* TLS is used on every hop: Let's Encrypt at Nginx, `sslmode=verify-full` with the AWS CA bundle to RDS, and HTTPS to S3. The EC2 instance uses an IAM role, so no AWS keys exist on the server, and the API checks ownership on every user-owned row. A distinct `503` reason in the health check (`timeout` versus `unreachable`) made it quick to tell a security group problem from a credential problem. What we would do differently: make RDS private from the start and give each team member their own IAM user, instead of opening developer IP addresses and sharing one administrator.
+
+*Teamwork.* Splitting work into GitHub issues and small pull requests with review kept both members informed and the history readable. The bottleneck was AWS console access, held by one member; documenting the setup in `docs/` reduced but did not remove that dependency.
+
+*Production enhancements.* For real traffic, the next steps are those in @sec-tradeoffs: monitoring and a budget alert first, then serving the client and images through CloudFront, and finally an Application Load Balancer with an Auto Scaling Group across two Availability Zones and RDS Multi-AZ. Because the API is stateless and all data lives in RDS and S3, these steps need little or no change to the application code. A cache such as ElastiCache (Redis) for the public place catalogue could be added if database reads become the bottleneck.
