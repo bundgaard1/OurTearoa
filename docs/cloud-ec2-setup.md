@@ -4,28 +4,28 @@
 - **Instance Type:** `t3.micro`
 - **OS:** Amazon Linux 2023
 
-![EC2 Instance](screenshots/2-01-ec2-running.png)
-![RDS and EC2 security](screenshots/3-rds-ec2-security.png)
+![EC2 Instance](report/media/screenshots/2-01-ec2-running.png)
+![RDS and EC2 security](report/media/screenshots/3-rds-ec2-security.png)
 
 > **Note:** The RDS instance additionally needs its own inbound rule for TCP 5432. The EC2 security group does not cover it — see [aws-rds-setup.md](aws-rds-setup.md).
 
 ## 2. Dependencies & Runtime
 - Node.js, npm, PM2, Nginx
 
-![Version Verification](screenshots/2-03-verification.png)
+![Version Verification](report/media/screenshots/2-03-verification.png)
 
 ## 3. Process Management
 - Managed with PM2 configured for systemd startup.
 - The `t3.micro` ships with 1 GB RAM, which Node can exceed. A swap file prevents the OOM killer from terminating the API process.
 
-![Swap Memory](screenshots/2-04-swap-memory.png)
+![Swap Memory](report/media/screenshots/2-04-swap-memory.png)
 
 ## 4. Reverse Proxy & Verification
 - Nginx proxying port 443 -> 127.0.0.1:3000.
 
-![API Online](screenshots/2-05-API-online.png)
-![API Connection](screenshots/2-06-api-connection.png)
-![Nginx Config Test](screenshots/2-07-nginx-test.png)
+![API Online](report/media/screenshots/2-05-API-online.png)
+![API Connection](report/media/screenshots/2-06-api-connection.png)
+![Nginx Config Test](report/media/screenshots/2-07-nginx-test.png)
 
 ## 5. Test
 - Confirm the API is up through the health endpoint, which returns `200` with a live `latencyMs` read from RDS:

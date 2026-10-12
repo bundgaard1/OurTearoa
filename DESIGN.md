@@ -225,7 +225,7 @@ TLS-verified against the AWS global CA bundle.
 | Service | Purpose | Notes |
 | :--- | :--- | :--- |
 | EC2 `t3.micro` | Hosts Nginx and the Node API | 1 GB RAM, so a swap file is configured to keep the OOM killer away from the API process |
-| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/screenshots/1-03-rds-running.png`); Single-AZ, storage encryption enabled, automated backups with 1-day retention; 20 GiB allocated storage |
+| RDS PostgreSQL | All application data | `db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem` (class and AZ from `docs/report/media/screenshots/1-03-rds-running.png`); Single-AZ, storage encryption enabled, automated backups with 1-day retention; 20 GiB allocated storage |
 | S3 bucket | Place images | `ourtearoa-storage` in `ap-southeast-2`; public read only on `public/*`; CORS for the frontend origin; EC2 accesses it through the IAM role `ourtearoa-ec2-s3-role` (no static keys), set up in #87; end-to-end upload working since #106, and live `imageUrl` values point to this bucket |
 | DuckDNS | Public DNS for `ourtearoa.duckdns.org` | Free; the record points to the Elastic IP `54.252.56.209`, which stays the same across stop and start, so no dynamic update client is needed. Route 53 was not used because it is a paid service |
 
