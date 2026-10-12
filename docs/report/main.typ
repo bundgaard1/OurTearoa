@@ -26,7 +26,7 @@
 
 #v(1fr)
 #align(center)[
-  #image("media/logo.svg", width: 50%)
+  #image("media/logo_old.jpeg", width: 150%)
 ]
 #v(1fr)
 
