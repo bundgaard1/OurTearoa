@@ -88,8 +88,8 @@
   columns: (1.2fr, 1fr, 3fr),
   stroke: 0.5pt + rgb("#cbd5e0"),
   [ *Member Name* ], [ *Student ID* ], [ *Assigned Components & Cloud Tasks* ],
-  [ Mathias Jorgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, Backend API Development (Express/Prisma), S3 asset integration ],
-  [ Tim Schiller ], [ 26347002 ], [ Frontend SPA Development (Angular 22, Signals), Project Manager, JWT Auth Architecture, Nginx/Certbot TLS setup, GitHub Actions CI/CD Pipeline ]
+  [ Mathias Jorgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, S3 asset integration, GitHub Actions CI/CD Pipeline, Nginx/Certbot TLS setup, ],
+  [ Tim Schiller ], [ 26347002 ], [ Frontend SPA Development (Angular 22, Signals), Project Manager, JWT Auth Architecture, Backend API Development (Express/Prisma), RESTful Endpoints, Curl Smoke Test ],
 )
 
 #pagebreak()
@@ -130,7 +130,7 @@ Visitors planning a trip around New Zealand gather destinations, opinions and da
 == Functional Requirements
 
 #table(
-  columns: (0.5fr, 1.9fr, 1.2fr),
+  columns: (auto, 1.9fr, 1.2fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*ID*], [*Requirement*], [*Stories*]),
@@ -147,7 +147,7 @@ The full user stories US-01 to US-20 with their acceptance criteria and status a
 == Non-Functional Requirements
 
 #table(
-  columns: (0.5fr, 1fr, 2fr),
+  columns: (auto, auto, 2fr),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*ID*], [*Quality Attribute*], [*Requirement*]),
@@ -377,7 +377,7 @@ A single place-detail page load, as an example:
 + Any error is translated to a status code and JSON error body; a failed request surfaces a visible error state in the component rather than a blank screen.
 
 #figure(
-  image("diagrams/stepbystep.png", width: 80%),
+  image("diagrams/stepbystep.png", width: 100%),
   caption: [Request lifecycle of a place-detail page load]
 )
 
@@ -573,10 +573,10 @@ curl -i https://ourtearoa.duckdns.org/api/health
 
 `200` with `{"status":"UP","database":"UP"}` confirms the API and its database connection are live. A `503` with `reason: "timeout"` means the RDS security group does not cover the instance; `reason: "unreachable"` means credentials or SSL settings are wrong.
 
-#figure(
-  image("media/screenshots/ci-cd evidence.png", width: 100%),
-  caption: [GitHub Actions workflow run showing the automated deployment steps],
-)
+// #figure(
+//   image("media/screenshots/ci-cd evidence.png", width: 100%),
+//   caption: [GitHub Actions workflow run showing the automated deployment steps],
+// )
 
 #figure(
   image("media/screenshots/actions-runs.png", width: 100%),
@@ -612,7 +612,7 @@ This section evaluates the deployed system against the quality attributes in @se
 
 #text(size: 9pt)[
   #table(
-    columns: (0.9fr, 1.6fr, 1.5fr),
+    columns: (auto, 1fr, 1fr),
     inset: 5.5pt,
     stroke: 0.5pt + rgb("#cbd5e0"),
     table.header([*Layer*], [*Current controls*], [*Known gaps and next steps*]),
@@ -716,12 +716,12 @@ Not yet done: no CDN or HTTP caching headers, no pagination on `GET /places` (fi
     inset: 5.5pt,
     stroke: 0.5pt + rgb("#cbd5e0"),
     table.header([*Item*], [*Estimate (USD/month)*], [*Note*]),
-    [EC2 `t3.micro`], [about 9.93], [`$0.0136` per hour],
-    [EBS root volume], [about 2], [20 GB gp3 at about `$0.10` per GB-month],
-    [RDS PostgreSQL], [about 11.68], [`db.t4g.micro` Single-AZ at `$0.016` per hour],
-    [RDS storage], [about 2.80], [20 GiB at roughly `$0.14` per GB-month (estimate); backup storage up to the database size is free],
-    [Elastic IP], [about 3.65], [`$0.005` per hour; AWS charges every public IPv4 address, including an attached Elastic IP],
-    [S3], [under 0.10], [A few MB of images and low request volume],
+    [EC2 `t3.micro`], [about 9\$], [`$0.0136` per hour],
+    [EBS root volume], [about 2\$], [20 GB gp3 at about `$0.10` per GB-month],
+    [RDS PostgreSQL], [about 11\$], [`db.t4g.micro` Single-AZ at `$0.016` per hour],
+    [RDS storage], [about 3\$], [20 GiB at roughly `$0.14` per GB-month (estimate); backup storage up to the database size is free],
+    [Elastic IP], [about 3\$], [`$0.005` per hour; AWS charges every public IPv4 address, including an attached Elastic IP],
+    [S3], [under 0.10\$], [A few MB of images and low request volume],
     [Data transfer], [close to 0], [Low traffic],
     [DuckDNS, Let's Encrypt], [0], [Free services],
     [GitHub Actions], [0], [Free for public repositories],
@@ -955,7 +955,7 @@ OurTearoa is a working three-tier cloud application: an Angular client, an Expre
   [At least 10 REST services, at least 3 `POST`], [25 endpoints, 8 of them `POST`],
   [Cloud database, not installed on the VM], [AWS RDS for PostgreSQL 16 over verified TLS (@sec-db)],
   [Assets in cloud object storage], [Place images in S3 via presigned direct upload (@sec-s3-flow)],
-  [Public URLs for client and API], [`https://ourtearoa.duckdns.org` and `https://ourtearoa.duckdns.org/api`],
+  [Public URLs for client and API], [Client: `https://ourtearoa.duckdns.org` \ API: `https://ourtearoa.duckdns.org/api`],
   [Git collaboration without history rewriting], [Feature branches, reviewed pull requests linked to issues, no force-push],
 )
 
