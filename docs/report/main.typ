@@ -89,7 +89,7 @@
   columns: (auto, auto, 3fr),
   stroke: 0.5pt + rgb("#cbd5e0"),
   [ *Member Name* ], [ *Student ID* ], [ *Assigned Components & Cloud Tasks* ],
-  [ Mathias Jorgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, S3 asset integration, GitHub Actions CI/CD Pipeline, Nginx/Certbot TLS setup, ],
+  [ Mathias Jørgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, S3 asset integration, GitHub Actions CI/CD Pipeline, Nginx/Certbot TLS setup ],
   [ Tim Schiller ], [ 26347002 ], [ Frontend SPA Development (Angular 22, Signals), Project Manager, JWT Auth Architecture, Backend API Development (Express/Prisma), RESTful Endpoints, Curl Smoke Test ],
 )
 
@@ -295,7 +295,7 @@ The project started with one formal kick-off meeting. After that, the team coord
 
 == Project Management Evidence (GitHub Projects / Kanban)
 
-Instead of Trello, the team used GitHub Issues with a GitHub Projects Kanban board, so that tasks, code and reviews live in one place (#link("https://github.com/bundgaard1/OurTearoa/issues?q=is%3Aissue")[issue list]). Tasks from the WBS became issues with a short description, usually a checklist of acceptance criteria, and an assignee; the board shows each issue's status from backlog to done. Each issue was implemented on its own feature branch and closed by a pull request that references it ("Closes \#N"), so every finished task links to the code that delivered it. GitHub records when an issue was opened, updated and closed, which provides the timestamps for the schedule in the previous section. Over the project, 63 issues were created and 61 pull requests merged.
+Instead of Trello, the team used GitHub Issues with a GitHub Projects Kanban board, so that tasks, code and reviews live in one place (#link("https://github.com/bundgaard1/OurTearoa/issues?q=is%3Aissue")[issue list]). Tasks from the WBS became issues with a short description, usually a checklist of acceptance criteria, and an assignee; the board shows each issue's status from backlog to done. Each issue was implemented on its own feature branch and closed by a pull request that references it ("Closes \#N"), so every finished task links to the code that delivered it. GitHub records when an issue was opened, updated and closed, which provides the timestamps for the schedule in the previous section. Over the project, 66 issues were created and 67 pull requests merged.
 
 #figure(
   image("media/screenshots/kanban.png", width: 100%),
@@ -314,7 +314,7 @@ Instead of Trello, the team used GitHub Issues with a GitHub Projects Kanban boa
 
 == Git Repository Contributions
 
-Both members contributed throughout the project in the shared repository #link("https://github.com/bundgaard1/OurTearoa")[`bundgaard1/OurTearoa`]. Excluding merge commits, `main` contains 46 commits by Mathias Jørgensen and 45 by Tim Schiller (`git shortlog -sn --no-merges`). The split by area reflects the division of work in the member contributions table:
+Both members contributed throughout the project in the shared repository #link("https://github.com/bundgaard1/OurTearoa")[`bundgaard1/OurTearoa`]. Excluding merge commits, `main` contains 49 commits by each member at the time of writing (`git shortlog -sn --no-merges`). The split by area reflects the division of work in the member contributions table: Tim Schiller wrote most of the client and the API code, while Mathias Jørgensen owned the database setup, configuration and deployment:
 
 #table(
   columns: (1.6fr, 1fr, 1fr),
@@ -322,12 +322,13 @@ Both members contributed throughout the project in the shared repository #link("
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Area (path)*], [*Mathias Jørgensen*], [*Tim Schiller*]),
   [Client (`client/`)], [9], [20],
-  [Backend (`backend/`)], [14], [9],
+  [Backend API code (`backend/src/`)], [4], [8],
+  [Database schema, seed and backend config (rest of `backend/`)], [14], [3],
   [Cloud and CI/CD config (`.github/`, `infra/`)], [7], [2],
-  [Documentation and report (`docs/`, `DESIGN.md`)], [23], [17],
+  [Documentation and report (`docs/`, `DESIGN.md`)], [26], [21],
 )
 
-Commits touching several areas are counted in each. Four further commits came from the GitHub Copilot coding agent (two CI fixes, see Appendix A). Work was done on feature branches and merged into `main` through 61 reviewed pull requests; `main` was never force-pushed and no commit history was rewritten, so the history shows each member's contributions as they happened.
+Commits touching several areas are counted in each. Four further commits came from the GitHub Copilot coding agent (two CI fixes, see Appendix A). Work was done on feature branches and merged into `main` through 67 reviewed pull requests; `main` was never force-pushed and no commit history was rewritten, so the history shows each member's contributions as they happened.
 
 #figure(
   image("media/screenshots/contributions.png", width: 100%),
