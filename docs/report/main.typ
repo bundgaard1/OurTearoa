@@ -267,7 +267,7 @@ The project started with one formal kick-off meeting. After that, the team coord
 *Kick-off meeting, 6 August 2026* (about 4 hours; agenda in issue \#1, minutes in issue \#2)
 - Agenda: define the project scope, determine roles, choose and challenge the tech stack, start the GitHub repository.
 - Decisions: a map-based travel web app; Angular with Leaflet and OpenStreetMap for the client; a TypeScript/Express API on a single EC2 instance; AWS RDS PostgreSQL and S3 for data and images; GitHub Actions for CI/CD.
-- Actions: Tim Schiller created the first work packages as issues (\#3 to \#12: scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added RDS security and IAM access (\#15, \#17) and took over the RDS provisioning (\#5).
+- Actions: Tim Schiller created the first work packages as issues (\#3 to \#12: scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added tasks for RDS security and IAM access and took over the RDS provisioning (\#5).
 
 *Coordination log (from GitHub issues and pull requests)*
 
@@ -525,7 +525,7 @@ The EC2 instance serves 443, and 80 only to redirect to HTTPS. SSH on 22 is used
   [RDS PostgreSQL], [All application data], [`db.t4g.micro` in `ap-southeast-2a` (Sydney), PostgreSQL 16, TLS with `global-bundle.pem`; Single-AZ, storage encryption enabled, automated backups with 1-day retention; 20 GiB allocated storage],
 )
 
-RDS carries its own inbound rule for 5432 for the EC2 security group. For development, `docs/aws-rds-setup.md` also allows individual developer `/32` addresses, which needs the instance to be publicly accessible. Removing that access is tracked in issue \#15 (see @sec-security). Postgres credentials and the `DATABASE_URL` are supplied by the process environment, never committed.
+RDS carries its own inbound rule for 5432 for the EC2 security group. For development, `docs/aws-rds-setup.md` also allows individual developer `/32` addresses, which needs the instance to be publicly accessible. This access is still in place at submission; removing it is the first future improvement (see @sec-security). Postgres credentials and the `DATABASE_URL` are supplied by the process environment, never committed.
 
 The RDS connection uses `sslmode=verify-full` with `global-bundle.pem`, so the certificate is validated rather than merely encrypted.
 
@@ -616,12 +616,12 @@ This section evaluates the deployed system against the quality attributes in @se
     inset: 5.5pt,
     stroke: 0.5pt + rgb("#cbd5e0"),
     table.header([*Layer*], [*Current controls*], [*Known gaps and next steps*]),
-    [Network], [EC2 security group opens 443, 80 (redirect only) and 22; RDS allows 5432 from the EC2 security group], [Developer `/32` rules require RDS "Publicly accessible = Yes"; remove them and use an SSH tunnel or bastion (issue \#15). SSH could be limited to known addresses or replaced by SSM Session Manager],
+    [Network], [EC2 security group opens 443, 80 (redirect only) and 22; RDS allows 5432 from the EC2 security group], [Developer `/32` rules require RDS "Publicly accessible = Yes"; remove them and use an SSH tunnel or bastion. SSH could be limited to known addresses or replaced by SSM Session Manager],
     [Data in transit], [HTTPS with Let's Encrypt, HTTP redirected with `301`; RDS over TLS with `sslmode=verify-full`; S3 over HTTPS], [Add HSTS in Nginx],
     [Data at rest], [Passwords stored as bcrypt hashes (cost 10); images in S3], [RDS storage encryption is enabled; S3 encrypts new objects by default (SSE-S3)],
-    [Identity and access], [EC2 uses the IAM role `ourtearoa-ec2-s3-role` for S3, so no access keys exist on the server; presigned POST limits key, type, size and lifetime], [Scope the role to the bucket and the needed actions only; give each team member their own IAM user with MFA (issue \#17)],
+    [Identity and access], [EC2 uses the IAM role `ourtearoa-ec2-s3-role` for S3, so no access keys exist on the server; presigned POST limits key, type, size and lifetime], [Scope the role to the bucket and the needed actions only; give each team member their own IAM user with MFA instead of the shared administrator account],
     [Application], [JWT (7 days) for every write; ownership checked on every user-owned row (`404` for others); input validated in controllers; Prisma parameterises all queries], [CORS is open to any origin; no rate limiting on login or upload; no security headers (helmet); the token is in `localStorage`, which is exposed to XSS. Any signed-in user may edit places (US-15 partial)],
-    [Secrets], [`.env` and keys are gitignored; deploy credentials are GitHub Actions secrets; only `.env.example` and the public RDS CA bundle are committed], [Repository and history audit open (issue \#10); AWS Secrets Manager or SSM Parameter Store would replace the `.env` on the instance],
+    [Secrets], [`.env` and keys are gitignored; deploy credentials are GitHub Actions secrets; only `.env.example` and the public RDS CA bundle are committed], [A full audit of the repository history for leaked secrets was not done; AWS Secrets Manager or SSM Parameter Store would replace the `.env` on the instance],
     [Operating system], [Amazon Linux 2023 with SELinux enforcing; Nginx is the only public process, the API listens on `127.0.0.1:3000`], [Regular `dnf upgrade` is manual],
   )
 ]
@@ -750,7 +750,7 @@ The account is on the AWS free tier. th
     table.header([*Decision*], [*Benefit*], [*Cost or risk accepted*]),
     [Single EC2 instance, no load balancer], [Cheapest, simple to operate], [Single point of failure, no automatic scaling (@sec-availability, @sec-scalability)],
     [Managed RDS instead of Postgres on the VM], [Backups, patching, required by the brief], [Higher cost than self-hosting],
-    [Public RDS endpoint for development], [Developers can run migrations and inspect data directly], [Larger attack surface until issue \#15 is done],
+    [Public RDS endpoint for development], [Developers can run migrations and inspect data directly], [Larger attack surface; not yet removed],
     [Client built in CI], [Production VM stays small], [Deploy depends on GitHub Actions],
     [Presigned POST direct to S3], [No image traffic on the VM, size enforced by S3], [Images are public; replaced files stay in the bucket],
     [JWT in `localStorage`], [Simple, stateless, works across tabs], [Exposed to XSS; no server-side logout],
@@ -761,7 +761,7 @@ The account is on the AWS free tier. th
 
 *Future improvements, in priority order.*
 
-+ Close issues \#15 and \#17: private RDS access, least-privilege IAM users with MFA.
++ Access hardening (not completed within the project): make RDS private and remove the developer `/32` rules, give each team member a least-privilege IAM user with MFA, and audit the repository history for secrets.
 + Monitoring: CloudWatch alarms on the health endpoint, CPU and RDS storage, plus an AWS Budgets alert.
 + Application hardening: restricted CORS origin, helmet, rate limiting on login and upload, HSTS.
 + Run the tests on every pull request, not only before deploy.
@@ -959,7 +959,7 @@ OurTearoa is a working three-tier cloud application: an Angular client, an Expre
   [Git collaboration without history rewriting], [Feature branches, reviewed pull requests linked to issues, no force-push],
 )
 
-All functional requirements are met except the contributor stories US-14 and US-15, which exist in the API but have no screen and no ownership model (#link(<app-user-stories>)[Appendix B]). Beyond the brief, the deployment is automated with tests before every deploy, and the system is evaluated for security, availability, backup, scalability, performance and cost in @sec-quality.
+All functional requirements are met except the contributor stories US-14 and US-15, which exist in the API but have no screen and no ownership model (#link(<app-user-stories>)[Appendix B]). Beyond the brief, the deployment is automated with tests before every deploy, and the system is evaluated for security, availability, backup, scalability, performance and cost in @sec-quality. Some security hardening was planned but not completed before submission: the RDS instance is still publicly accessible for development, the team shares one AWS administrator account, and there is no monitoring yet. These are stated as open points in @sec-security and @sec-tradeoffs.
 
 == Critical Engineering Reflections & Lessons Learned
 
