@@ -297,6 +297,16 @@ Most of the feature work happened in the last two weeks, once the cloud skeleton
   caption: [Kanban board of the GitHub project],
 )
 
+#figure(
+  image("media/screenshots/issues-closed.png", width: 100%),
+  caption: [Closed GitHub issues; the pull request icon marks issues closed by a linked pull request],
+)
+
+#figure(
+  image("media/screenshots/issue-87.png", width: 85%),
+  caption: [Example issue (\#87, S3 bucket) with task checklist, project status and linked pull requests],
+)
+
 == Git Repository Contributions
 #prompt("What to write & Screenshots", [
   - Provide evidence of commits from both Mathias and Tim showing balanced contributions across frontend, backend, and cloud config.
@@ -551,7 +561,25 @@ curl -i https://ourtearoa.duckdns.org/api/health
 
 `200` with `{"status":"UP","database":"UP"}` confirms the API _and_ its database connection are live. A `503` with `reason: "timeout"` means the RDS security group does not cover the instance; `reason: "unreachable"` means credentials or SSL settings are wrong.
 
-#img-placeholder("Figure 6.6: GitHub Actions Workflow Run Executions Proving Automated Deployment")
+#figure(
+  image("media/screenshots/actions-runs.png", width: 100%),
+  caption: [GitHub Actions: CI/CD deployment runs, one per merge to `main`],
+)
+
+#figure(
+  image("media/screenshots/actions-client-tests.png", width: 100%),
+  caption: [Deploy run: client unit tests (136 tests in 23 files passed) and production build before deployment],
+)
+
+#figure(
+  image("media/screenshots/actions-deploy-frontend.png", width: 100%),
+  caption: [Deploy run: compiled client copied to the Nginx web root with rsync],
+)
+
+#figure(
+  image("media/screenshots/actions-deploy-backend.png", width: 100%),
+  caption: [Deploy run: Prisma client generated, `prisma migrate deploy` ("No pending migrations to apply") and the API restarted under PM2],
+)
 
 #pagebreak()
 
