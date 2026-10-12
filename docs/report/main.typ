@@ -262,7 +262,10 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
   - Insert snapshots of task cards showing issue tracking, checklist completion, and timestamps.
 ])
 
-#img-placeholder("Figure 4.1: Kanban Board with Backlog, Progress, and Production Done states")
+#figure(
+  image("media/screenshots/kanban.png", width: 100%),
+  caption: [Kanban board of the GitHub project],
+)
 
 #img-placeholder("Figure 4.2: Sample Issue Cards with Timestamped Activity Logs")
 
@@ -272,7 +275,10 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
   - Show GitHub Insights commit distribution and confirm no commit history rewriting was performed.
 ])
 
-#img-placeholder("Figure 4.3: GitHub Commit Frequency and Contributor Distribution Graph")
+#figure(
+  image("media/screenshots/contributions.png", width: 100%),
+  caption: [GitHub contributor graph],
+)
 
 #img-placeholder("Figure 4.4: GitHub Commit Log with Timestamp History")
 
@@ -344,6 +350,31 @@ The frontend is deliberately minimal: plain standalone components, a single glob
 )
 
 *Master/detail.* `/places/:id` is a child route of `/places`, so the catalogue stays rendered and the detail panel opens beside it at half the window width. On screens of 768 px or less the panel covers the full screen. Closing the panel navigates back to `/places`. Because the panel is a route, a place link can be shared or bookmarked.
+
+*Wireframes.* The screens were sketched as low-fidelity wireframes in the planning phase, each mapped to its user stories and the endpoints it calls.
+
+#figure(
+  grid(
+    columns: 3,
+    gutter: 8pt,
+    image("media/wireframes/wireframe-1-place-list.png", width: 100%),
+    image("media/wireframes/wireframe-2-place-detail.png", width: 100%),
+    image("media/wireframes/wireframe-7-add-place.png", width: 100%),
+  ),
+  caption: [Wireframes from the planning phase: place list with map, place detail, add place],
+)
+
+#figure(
+  grid(
+    columns: 2,
+    gutter: 8pt,
+    image("media/wireframes/wireframe-5-favourites.png", width: 100%),
+    image("media/wireframes/wireframe-6-itinerary.png", width: 100%),
+  ),
+  caption: [Wireframes from the planning phase: favourites and itinerary],
+)
+
+The implementation kept the screens, the navigation and the endpoint mapping, but changed three things. The map moved from the place list into the detail panel, and the detail opens as a side panel next to the list instead of a separate page. The add-place screen was not built (US-14 is partial). Image upload moved to the detail panel, and the planned presigned PUT through a separate `/uploads` endpoint became a presigned POST, so that S3 enforces the size limit (@sec-s3-flow).
 
 The contributor stories (US-14, US-15) have no screen yet. The API endpoints exist (@sec-api-overview), but adding and editing places is a later-stage feature.
 
@@ -496,9 +527,25 @@ Trade-offs: a presigned POST was chosen over a presigned PUT because S3 enforces
 
 The EC2 instance serves 443, and 80 only to redirect to HTTPS. SSH on 22 is used for administration and by the deploy workflow. Nginx terminates TLS with a Let's Encrypt certificate (Certbot), serves the SPA from `/var/www/ourtearoa`, and proxies `/api/*` to `127.0.0.1:3000`. PM2 runs the API with systemd persistence.
 
-#img-placeholder("Figure 6.1: EC2 Instance Configuration & Swap Space Verification")
+#figure(
+  image("media/screenshots/2-01-ec2-running.png", width: 100%),
+  caption: [EC2 instance in the AWS console, taken during the initial setup (before the Elastic IP and the IAM role were attached)],
+)
 
-#img-placeholder("Figure 6.2: PM2 Status Dashboard and Systemd Daemon Logs")
+#figure(
+  image("media/screenshots/2-04-swap-memory.png", width: 80%),
+  caption: [Swap file on the EC2 instance (`free -h`)],
+)
+
+#figure(
+  image("media/screenshots/9-certificate_deployed.png", width: 90%),
+  caption: [Let's Encrypt certificate issued and deployed to Nginx by Certbot],
+)
+
+#figure(
+  image("media/screenshots/reboot-evidence.png", width: 85%),
+  caption: [After an instance reboot: Nginx active, the API back online under PM2, and the public health check returning `200`],
+)
 
 == Managed Cloud Database Setup (AWS RDS PostgreSQL)
 
@@ -514,9 +561,15 @@ RDS carries its own inbound rule for 5432 for the EC2 security group. For develo
 
 The RDS connection uses `sslmode=verify-full` with `global-bundle.pem`, so the certificate is validated rather than merely encrypted.
 
-#img-placeholder("Figure 6.3: AWS RDS Console - Database Status, Engine Version, and Subnet Groups")
+#figure(
+  image("media/screenshots/1-03-rds-running.png", width: 100%),
+  caption: [RDS instance `ourtearoa-db` in the AWS console],
+)
 
-#img-placeholder("Figure 6.4: RDS Security Group Inbound Rule Scoped to EC2 Security Group ID")
+#figure(
+  image("media/screenshots/3-rds-ec2-security.png", width: 100%),
+  caption: [Security groups connecting the EC2 instance and RDS],
+)
 
 == Cloud Object Storage Provisioning (AWS S3)
 
@@ -814,7 +867,10 @@ All endpoints are under `/api` and speak JSON. Responses are `200`/`201` on succ
   - Include Postman screenshots showing request headers, live cloud URL, payload, and JSON responses for key POST and GET endpoints.
 ])
 
-#img-placeholder("Figure 8.1: API Verification - GET /health returning status: UP, database: UP")
+#figure(
+  image("media/screenshots/2-06-api-connection.png", width: 100%),
+  caption: [`GET /api/health` on the public URL returning `"status":"UP"` and `"database":"UP"`],
+)
 
 #img-placeholder("Figure 8.2: Postman Test - POST /auth/register and POST /auth/login issuing JWT")
 
