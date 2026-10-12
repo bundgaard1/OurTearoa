@@ -184,7 +184,7 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
 
 #text(size: 9pt)[
   #table(
-    columns: (auto, 1fr, auto, auto, 1.5fr, auto),
+    columns: (auto, auto, auto, auto, auto, auto),
     inset: 5.5pt,
     stroke: 0.5pt + rgb("#cbd5e0"),
     table.header([*ID*], [*Risk*], [*Likelihood*], [*Impact*], [*Mitigation*], [*Status*]),

@@ -40,7 +40,7 @@
   show figure.caption: set text(size: 9pt, style: "italic")
   
   // Code block styling (crucial for software architecture)
-  show raw: set text(font: "New Computer Modern")
+  show raw: set text(font: "New Computer Modern", size: 11pt, weight: "bold", fill: gray.darken(40%), style: "italic")
   show raw.where(block: true): it => block(
     fill: rgb("#f8f9fa"),
     inset: 10pt,
