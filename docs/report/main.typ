@@ -76,6 +76,7 @@
   columns: (1.6fr, 3.6fr),
   inset: 8pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
+  [*Deliverable*], [*Access Link*],
   [ *Presentation Video* ], [ #link("https://youtu.be/RNysyNhTvGI") ],
   [ *GitHub Repository* ], [ #link("https://github.com/bundgaard1/OurTearoa") ],
   [ *Live Web Client URL* ], [ #link("https://ourtearoa.duckdns.org") ],
@@ -85,7 +86,7 @@
 == Member Contributions <nonumber>
 
 #table(
-  columns: (1.2fr, 1fr, 3fr),
+  columns: (auto, auto, 3fr),
   stroke: 0.5pt + rgb("#cbd5e0"),
   [ *Member Name* ], [ *Student ID* ], [ *Assigned Components & Cloud Tasks* ],
   [ Mathias Jorgensen ], [ 26344066 ], [ Setup AWS (S3 storage, EC2 compute, RDS PostgreSQL), Project Owner, S3 asset integration, GitHub Actions CI/CD Pipeline, Nginx/Certbot TLS setup, ],
@@ -117,7 +118,7 @@ Architecturally, the application enforces a strict separation of concerns throug
 
 - *Network:* Reverse proxy and TLS termination handled by Nginx with Let's Encrypt certificates @letsencrypt, and DNS mapped to the instance's Elastic IP via DuckDNS (`ourtearoa.duckdns.org`). DuckDNS is a free static record, so no dynamic update client is needed @duckdns.
 
-- *Delivery and local development:* GitHub Actions tests and builds the client and deploys over rsync and SSH (see @sec-cicd); Docker Compose runs PostgreSQL 16 for local development.
+- *Delivery and local development:* GitHub Actions tests and builds the client and deploys over rsync and SSH; Docker Compose runs PostgreSQL 16 for local development.
 
 // ==========================================
 // 2. BACKGROUND & REQUIREMENTS ANALYSIS
@@ -166,18 +167,18 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
 - *Assignment brief (Option B):* three tiers; client and API decoupled by REST; at least 10 REST services including at least 3 `POST`; a cloud database, not a database installed on the VM; assets in cloud object storage; public URLs for client and API; Git collaboration without history rewriting. OurTearoa exposes 25 endpoints, 8 of them `POST` (@sec-api-overview), uses RDS and S3, and keeps a linear history of merged PRs.
 - *Team:* two part-time students over one semester. One AWS account, administered by Mathias Jørgensen.
 - *Budget:* free tier or student credits only, which rules out load balancers, Multi-AZ databases and managed container platforms.
-- *Infrastructure:* the 1 GB `t3.micro` cannot build the Angular client and must not carry image traffic. Both shaped the design: the client is built in CI (@sec-cicd) and images go straight to S3 (@sec-s3-flow).
+- *Infrastructure:* the 1 GB `t3.micro` cannot build the Angular client and must not carry image traffic. Both shaped the design: the client is built in CI and images go straight to S3 (@sec-s3-flow).
 
 == Assumptions
 
 #table(
-  columns: (1fr, 1fr),
+  columns: (auto, auto),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Assumption*], [*Justification*]),
   [Traffic is low: the team, markers and a few test users],
   [Short outages outside marking sessions are acceptable], [No SLA; availability matters during the evaluation window], 
-  [Users are mainly in New Zealand and Australia], [Product scope], 
+  [Users are mainly in New Zealand], [Product scope], 
   [Any signed-in user may edit places and add images], [Community-curated catalogue; no moderation in scope],
   [Stored personal data is minimal (name, email, password hash)], [No payments or location tracking], 
   [Place images may be public], 
@@ -267,25 +268,25 @@ The project started with one formal kick-off meeting. After that, the team coord
 *Kick-off meeting, 6 August 2026* (about 4 hours; agenda in issue \#1, minutes in issue \#2)
 - Agenda: define the project scope, determine roles, choose and challenge the tech stack, start the GitHub repository.
 - Decisions: a map-based travel web app; Angular with Leaflet and OpenStreetMap for the client; a TypeScript/Express API on a single EC2 instance; AWS RDS PostgreSQL and S3 for data and images; GitHub Actions for CI/CD.
-- Actions: Tim Schiller created the first work packages as issues (\#3 to \#12: scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added tasks for RDS security and IAM access and took over the RDS provisioning (\#5).
+- Actions: Tim Schiller created the first work packages as issues ( scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added tasks for RDS security and IAM access and took over the RDS provisioning.
 
 *Coordination log (from GitHub issues and pull requests)*
 
-#text(size: 9pt)[
-  #table(
-    columns: (auto, auto, 1fr),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*Date*], [*Where*], [*Decision or outcome*]),
-    [29-30 Sep 2026], [\#8, \#9, \#11], [Cloud skeleton accepted: public API URL live, client served over HTTPS with a Let's Encrypt certificate, deploy on every merge. Mathias Jørgensen documented the HTTPS acceptance checklist in \#9.],
-    [4 Oct 2026], [\#5, \#29 to \#44], [Decision to store plain latitude and longitude instead of PostGIS, because no screen needs spatial queries (comment by Tim Schiller in \#5). Backend API split into one issue per resource; Tim Schiller implements the endpoints and the curl smoke test.],
-    [5-6 Oct 2026], [\#30, \#47], [`JWT_SECRET` set on the server before the auth deploy. Production migration failure reported and fixed by Mathias Jørgensen.],
-    [6 Oct 2026], [\#48 to \#70], [Client work split into 23 issues (shell, auth, catalogue, detail panel, map, reviews, favourites, itinerary, profile, CI tests), created by Mathias Jørgensen. Most screens were then implemented by Tim Schiller and reviewed by Mathias Jørgensen in pull requests.],
-    [9 Oct 2026], [\#72, \#87], [Decision to store images in S3 instead of an upload directory on EC2 (\#72 closed, \#87 opened). Responsibilities agreed: Mathias Jørgensen sets up the bucket and IAM role, Tim Schiller builds the presigned upload in the API and client (\#71, \#73).],
-    [11 Oct 2026], [\#104, \#106], [Failing image upload diagnosed and fixed by attaching the IAM instance profile and S3 CORS (Mathias Jørgensen). Deploy workflow made reliable by regenerating the Prisma client and serialising runs (Tim Schiller).],
-    [11-12 Oct 2026], [\#108 to \#129], [Report and evidence split into issues: requirements and quality sections, final AWS values, screenshots, report sections. Mathias Jørgensen confirmed the AWS console values and reviewed and merged the report pull requests.],
-  )
-]
+
+#table(
+  columns: (auto, auto, 1fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Date*], [*Where*], [*Decision or outcome*]),
+  [29-30 Sep 2026], [\#8, \#9, \#11], [Cloud skeleton accepted: public API URL live, client served over HTTPS with a Let's Encrypt certificate, deploy on every merge. Mathias Jørgensen documented the HTTPS acceptance checklist in \#9.],
+  [4 Oct 2026], [\#5, \#29 to \#44], [Decision to store plain latitude and longitude instead of PostGIS, because no screen needs spatial queries (comment by Tim Schiller in \#5). Backend API split into one issue per resource; Tim Schiller implements the endpoints and the curl smoke test.],
+  [5-6 Oct 2026], [\#30, \#47], [`JWT_SECRET` set on the server before the auth deploy. Production migration failure reported and fixed by Mathias Jørgensen.],
+  [6 Oct 2026], [\#48 to \#70], [Client work split into 23 issues (shell, auth, catalogue, detail panel, map, reviews, favourites, itinerary, profile, CI tests), created by Mathias Jørgensen. Most screens were then implemented by Tim Schiller and reviewed by Mathias Jørgensen in pull requests.],
+  [9 Oct 2026], [\#72, \#87], [Decision to store images in S3 instead of an upload directory on EC2 (\#72 closed, \#87 opened). Responsibilities agreed: Mathias Jørgensen sets up the bucket and IAM role, Tim Schiller builds the presigned upload in the API and client (\#71, \#73).],
+  [11 Oct 2026], [\#104, \#106], [Failing image upload diagnosed and fixed by attaching the IAM instance profile and S3 CORS (Mathias Jørgensen). Deploy workflow made reliable by regenerating the Prisma client and serialising runs (Tim Schiller).],
+  [11-12 Oct 2026], [\#108 to \#129], [Report and evidence split into issues: requirements and quality sections, final AWS values, screenshots, report sections. Mathias Jørgensen confirmed the AWS console values and reviewed and merged the report pull requests.],
+)
+
 
 // ==========================================
 // 4. WORKLOG & COLLABORATION EVIDENCE
@@ -451,11 +452,14 @@ The header is always visible. Visitors see *Places*, *Login* and *Register*; sig
 The schema lives in `backend/prisma/schema.prisma` and is applied with Prisma migrations (`backend/prisma/migrations/`): `migrate dev` locally, `migrate deploy` in the deployment workflow. All primary keys are UUID strings generated by Prisma.
 
 #figure(
+  placement: auto,
   image("diagrams/erd.png", width: 80%),
   caption: [Entity-Relationship Diagram (ERD) of PostgreSQL Database Schema],
-)
+)<ERD-diagram>
 
 === Design Notes
+
+The models can be seen in the @ERD-diagram. The following design decisions were made:
 
 - *Indexes.* Every foreign key is indexed, and `Place.name` and `Place.region` are indexed for search and filter.
 - *Cascades.* Deleting a user (`DELETE /users/me`) removes their reviews, favourites and itinerary entries; deleting a place removes everything that references it. No orphan rows are possible.
@@ -610,21 +614,21 @@ This section evaluates the deployed system against the quality attributes in @se
 
 == Security <sec-security>
 
-#text(size: 9pt)[
-  #table(
-    columns: (auto, 1fr, 1fr),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*Layer*], [*Current controls*], [*Known gaps and next steps*]),
-    [Network], [EC2 security group opens 443, 80 (redirect only) and 22; RDS allows 5432 from the EC2 security group], [Developer `/32` rules require RDS "Publicly accessible = Yes"; remove them and use an SSH tunnel or bastion. SSH could be limited to known addresses or replaced by SSM Session Manager],
-    [Data in transit], [HTTPS with Let's Encrypt, HTTP redirected with `301`; RDS over TLS with `sslmode=verify-full`; S3 over HTTPS], [Add HSTS in Nginx],
-    [Data at rest], [Passwords stored as bcrypt hashes (cost 10); images in S3], [RDS storage encryption is enabled; S3 encrypts new objects by default (SSE-S3)],
-    [Identity and access], [EC2 uses the IAM role `ourtearoa-ec2-s3-role` for S3, so no access keys exist on the server; presigned POST limits key, type, size and lifetime], [Scope the role to the bucket and the needed actions only; give each team member their own IAM user with MFA instead of the shared administrator account],
-    [Application], [JWT (7 days) for every write; ownership checked on every user-owned row (`404` for others); input validated in controllers; Prisma parameterises all queries], [CORS is open to any origin; no rate limiting on login or upload; no security headers (helmet); the token is in `localStorage`, which is exposed to XSS. Any signed-in user may edit places (US-15 partial)],
-    [Secrets], [`.env` and keys are gitignored; deploy credentials are GitHub Actions secrets; only `.env.example` and the public RDS CA bundle are committed], [A full audit of the repository history for leaked secrets was not done; AWS Secrets Manager or SSM Parameter Store would replace the `.env` on the instance],
-    [Operating system], [Amazon Linux 2023 with SELinux enforcing; Nginx is the only public process, the API listens on `127.0.0.1:3000`], [Regular `dnf upgrade` is manual],
-  )
-]
+
+#table(
+  columns: (auto, 1fr, 1fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Layer*], [*Current controls*], [*Known gaps and next steps*]),
+  [Network], [EC2 security group opens 443, 80 (redirect only) and 22; RDS allows 5432 from the EC2 security group], [Developer `/32` rules require RDS "Publicly accessible = Yes"; remove them and use an SSH tunnel or bastion. SSH could be limited to known addresses or replaced by SSM Session Manager],
+  [Data in transit], [HTTPS with Let's Encrypt, HTTP redirected with `301`; RDS over TLS with `sslmode=verify-full`; S3 over HTTPS], [Add HSTS in Nginx],
+  [Data at rest], [Passwords stored as bcrypt hashes (cost 10); images in S3], [RDS storage encryption is enabled; S3 encrypts new objects by default (SSE-S3)],
+  [Identity and access], [EC2 uses the IAM role `ourtearoa-ec2-s3-role` for S3, so no access keys exist on the server; presigned POST limits key, type, size and lifetime], [Scope the role to the bucket and the needed actions only; give each team member their own IAM user with MFA instead of the shared administrator account],
+  [Application], [JWT (7 days) for every write; ownership checked on every user-owned row (`404` for others); input validated in controllers; Prisma parameterises all queries], [CORS is open to any origin; no rate limiting on login or upload; no security headers (helmet); the token is in `localStorage`, which is exposed to XSS. Any signed-in user may edit places (US-15 partial)],
+  [Secrets], [`.env` and keys are gitignored; deploy credentials are GitHub Actions secrets; only `.env.example` and the public RDS CA bundle are committed], [A full audit of the repository history for leaked secrets was not done; AWS Secrets Manager or SSM Parameter Store would replace the `.env` on the instance],
+  [Operating system], [Amazon Linux 2023 with SELinux enforcing; Nginx is the only public process, the API listens on `127.0.0.1:3000`], [Regular `dnf upgrade` is manual],
+)
+
 
 The controls above cover the risks of a small public catalogue with minimal personal data. Rate limiting, a WAF and a private-subnet database were left out to stay within time and the free tier, and are listed in @sec-tradeoffs.
 
@@ -648,23 +652,25 @@ The controls above cover the risks of a small public catalogue with minimal pers
 
 == Backup and Disaster Recovery <sec-backup>
 
-#text(size: 9pt)[
-  #table(
-    columns: (auto, 1fr, 1.5fr, 1.3fr),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*Component*], [*Where the state lives*], [*Backup*], [*Recovery*]),
-    [Application data], [RDS], [Automated daily snapshots and point-in-time restore, retention 1 day; manual snapshot before risky migrations], [Restore to a new instance and update `DATABASE_URL`],
-    [Schema], [Git (`backend/prisma/migrations/`)], [Every migration is versioned], [`prisma migrate deploy`],
-    [Images], [S3], [99.99% designed durability @aws_s3, stored across several AZs], [Versioning is disabled; enabling it would protect against accidental deletes and overwrites],
-    [Code and client], [GitHub], [Every merged PR], [The deploy workflow rebuilds and redeploys],
-    [EC2 instance], [None (stateless)], [Setup documented in `docs/cloud-ec2-setup.md`], [Launch a new instance, follow the guide, move the Elastic IP to it, so DNS and the deploy host secret stay unchanged],
-  )
-]
 
-*Targets:* 
-- RPO: about 5 minutes for the database, the interval of RDS transaction log backups; zero for code. 
-- RTO: about 1 hour to rebuild the EC2 instance by hand and 30 to 60 minutes for an RDS point-in-time restore. Everything runs in `ap-southeast-2`, so a region-wide outage is not covered; cross-region snapshot copies and S3 replication would be the next step if that mattered. A restore has not been rehearsed yet.
+#table(
+  columns: (auto, 1fr, 1.5fr, 1.3fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Component*], [*Where the state lives*], [*Backup*], [*Recovery*]),
+  [Application data], [RDS], [Automated daily snapshots and point-in-time restore, retention 1 day; manual snapshot before risky migrations], [Restore to a new instance and update `DATABASE_URL`],
+  [Schema], [Git (`backend/prisma/migrations/`)], [Every migration is versioned], [`prisma migrate deploy`],
+  [Images], [S3], [99.99% designed durability @aws_s3, stored across several AZs], [Versioning is disabled; enabling it would protect against accidental deletes and overwrites],
+  [Code and client], [GitHub], [Every merged PR], [The deploy workflow rebuilds and redeploys],
+  [EC2 instance], [None (stateless)], [Setup documented in `docs/cloud-ec2-setup.md`], [Launch a new instance, follow the guide, move the Elastic IP to it, so DNS and the deploy host secret stay unchanged],
+)
+ 
+*Targets:*
+- *AWS RDS PostgreSQL:* 5-minute transaction log backup interval with 30 to 60-minute point-in-time restore to a fresh instance.
+- *AWS EC2 (t3.micro):* Stateless compute; manual re-provisioning and Elastic IP re-association in ~1 hour.
+- *AWS S3 (ourtearoa-storage):* Regional object durability across multiple AZs; overwrites permanent until versioning is enabled.
+- *Code & Schema (Git):* Zero loss; immediate rebuild and deployment via GitHub Actions.
+- *Scope:* Single-region (`ap-southeast-2`); cross-region copies and live restore rehearsals not yet conducted.
 
 With a retention of 1 day, point-in-time restore only reaches back 24 hours: a bad migration or deletion noticed later cannot be undone. Raising the retention to 7 days is the cheapest improvement here, since backup storage up to the database size is free.
 
@@ -684,7 +690,7 @@ Risk: `backend/prisma/seed.ts` deletes all rows before seeding and must never be
 *Scale-out path.*
 
 #table(
-  columns: (1fr, 1.6fr),
+  columns: (auto, auto),
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Load grows in*], [*Response*]),
@@ -698,7 +704,7 @@ Risk: `backend/prisma/seed.ts` deletes all rows before seeding and must never be
 
 == Performance <sec-performance>
 
-- *Region.* Everything runs in `ap-southeast-2` (Sydney), close to the expected users in New Zealand and Australia, and the API and database are in the same region.
+- *Region.* Everything runs in `ap-southeast-2` (Sydney), close to the expected users in New Zealand, and the API and database are in the same region.
 - *Queries.* Region filter and name search are done in the database (`mode: insensitive`), not in the client. Foreign keys used for lookups are indexed (`placeId` on reviews and favourites), and itineraries use the composite index (`userId`, `startDate`) that matches their sort order (@sec-db).
 - *Images.* Loaded directly from S3, not through Nginx or Node; the 5 MB limit keeps uploads bounded.
 - *Client.* Production build from CI, served as static files by Nginx; the client loads data on demand per page.
@@ -710,24 +716,23 @@ Not yet done: no CDN or HTTP caching headers, no pagination on `GET /places` (fi
 
 *Monthly estimate* (on-demand prices for `ap-southeast-2`, 730 hours, taken from public AWS price lists in October 2026; estimates, not billing data):
 
-#text(size: 9pt)[
-  #table(
-    columns: (1fr, 1fr, 1.6fr),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*Item*], [*Estimate (USD/month)*], [*Note*]),
-    [EC2 `t3.micro`], [about 9\$], [`$0.0136` per hour],
-    [EBS root volume], [about 2\$], [20 GB gp3 at about `$0.10` per GB-month],
-    [RDS PostgreSQL], [about 11\$], [`db.t4g.micro` Single-AZ at `$0.016` per hour],
-    [RDS storage], [about 3\$], [20 GiB at roughly `$0.14` per GB-month (estimate); backup storage up to the database size is free],
-    [Elastic IP], [about 3\$], [`$0.005` per hour; AWS charges every public IPv4 address, including an attached Elastic IP],
-    [S3], [under 0.10\$], [A few MB of images and low request volume],
-    [Data transfer], [close to 0], [Low traffic],
-    [DuckDNS, Let's Encrypt], [0], [Free services],
-    [GitHub Actions], [0], [Free for public repositories],
-    [*Total*], [*about 30*], [*Before free tier or credits*],
-  )
-]
+
+#table(
+  columns: (auto, auto, auto),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Item*], [*Estimate (USD/month)*], [*Note*]),
+  [EC2 `t3.micro`], [about 9\$], [`$0.0136` per hour],
+  [EBS root volume], [about 2\$], [20 GB gp3 at about `$0.10` per GB-month],
+  [RDS PostgreSQL], [about 11\$], [`db.t4g.micro` Single-AZ at `$0.016` per hour],
+  [RDS storage], [about 3\$], [20 GiB at roughly `$0.14` per GB-month (estimate); backup storage up to the database size is free],
+  [Elastic IP], [about 3\$], [`$0.005` per hour; AWS charges every public IPv4 address, including an attached Elastic IP],
+  [S3], [under 0.10\$], [A few MB of images and low request volume],
+  [Data transfer], [close to 0], [Low traffic],
+  [DuckDNS, Let's Encrypt], [0], [Free services],
+  [GitHub Actions], [0], [Free for public repositories],
+  [*Total*], [*about 30*], [*Before free tier or credits*],
+)
 
 The account is on the AWS free tier. th
 
@@ -742,22 +747,21 @@ The account is on the AWS free tier. th
 
 == Trade-off Summary and Future Improvements <sec-tradeoffs>
 
-#text(size: 9pt)[
-  #table(
-    columns: (1.5fr, 1.2fr, 1.6fr),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*Decision*], [*Benefit*], [*Cost or risk accepted*]),
-    [Single EC2 instance, no load balancer], [Cheapest, simple to operate], [Single point of failure, no automatic scaling (@sec-availability, @sec-scalability)],
-    [Managed RDS instead of Postgres on the VM], [Backups, patching, required by the brief], [Higher cost than self-hosting],
-    [Public RDS endpoint for development], [Developers can run migrations and inspect data directly], [Larger attack surface; not yet removed],
-    [Client built in CI], [Production VM stays small], [Deploy depends on GitHub Actions],
-    [Presigned POST direct to S3], [No image traffic on the VM, size enforced by S3], [Images are public; replaced files stay in the bucket],
-    [JWT in `localStorage`], [Simple, stateless, works across tabs], [Exposed to XSS; no server-side logout],
-    [Let's Encrypt and DuckDNS], [Free HTTPS on a named domain], [Depends on free external services],
-    [PM2 restart on deploy], [Simple and reliable], [A few seconds of downtime per deploy],
-  )
-]
+#table(
+  columns: (1.5fr, 1.2fr, 1.6fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Decision*], [*Benefit*], [*Cost or risk accepted*]),
+  [Single EC2 instance, no load balancer], [Cheapest, simple to operate], [Single point of failure, no automatic scaling (@sec-availability, @sec-scalability)],
+  [Managed RDS instead of Postgres on the VM], [Backups, patching, required by the brief], [Higher cost than self-hosting],
+  [Public RDS endpoint for development], [Developers can run migrations and inspect data directly], [Larger attack surface; not yet removed],
+  [Client built in CI], [Production VM stays small], [Deploy depends on GitHub Actions],
+  [Presigned POST direct to S3], [No image traffic on the VM, size enforced by S3], [Images are public; replaced files stay in the bucket],
+  [JWT in `localStorage`], [Simple, stateless, works across tabs], [Exposed to XSS; no server-side logout],
+  [Let's Encrypt and DuckDNS], [Free HTTPS on a named domain], [Depends on free external services],
+  [PM2 restart on deploy], [Simple and reliable], [A few seconds of downtime per deploy],
+)
+
 
 *Future improvements, in priority order.*
 
@@ -849,39 +853,37 @@ All endpoints are under `/api` and speak JSON. Responses are `200`/`201` on succ
 
 == Endpoints Specification Table
 
-#text(size: 9pt)[
-  #table(
-    columns: (1fr, 1.2fr, 0.7fr, 0.8fr, 3.5fr),
-    inset: 5.5pt,
-    stroke: 0.5pt + rgb("#cbd5e0"),
-    table.header([*Method*], [*Path*], [*Auth*], [*Status*], [*Notes*]),
-    [*GET*], [`/health`], [No], [200], [API and database status],
-    [*POST*], [`/auth/register`], [No], [201], [`email`, `name`, `password` (min 8); 409 if email exists],
-    [*POST*], [`/auth/login`], [No], [200], [returns `token` and `user`; 401 on bad credentials],
-    [*GET*], [`/users/me`], [Bearer], [200], [own profile including email],
-    [*GET*], [`/users/:id`], [Bearer], [200], [`id`, `name`, `createdAt` only],
-    [*DELETE*], [`/users/me`], [Bearer], [204], [deletes own account and, via cascade, its reviews, favorites and itinerary],
-    [*GET*], [`/favorites`], [Bearer], [200], [own favorites with place],
-    [*POST*], [`/favorites`], [Bearer], [201], [`placeId`; 409 if already a favorite],
-    [*DELETE*], [`/favorites/:id`], [Bearer], [204], [own favorites only],
-    [*GET*], [`/itinerary`], [Bearer], [200], [own entries ordered by start date],
-    [*POST*], [`/itinerary`], [Bearer], [201], [`placeId`, `startDate`, `endDate`, `note?`; 400 if end before start],
-    [*PUT*], [`/itinerary/:id`], [Bearer], [200], [partial update],
-    [*DELETE*], [`/itinerary/:id`], [Bearer], [204], [own entries only],
-    [*GET*], [`/places/:id/reviews`], [No], [200], [reviews with author name],
-    [*GET*], [`/reviews/:id`], [No], [200], [],
-    [*POST*], [`/reviews`], [Bearer], [201], [`placeId`, `rating` (1-5), `comment?`],
-    [*PUT*], [`/reviews/:id`], [Bearer], [200], [own reviews only],
-    [*DELETE*], [`/reviews/:id`], [Bearer], [204], [own reviews only],
-    [*GET*], [`/places`], [No], [200], [optional `region` (exact, case-insensitive) and `q` (name contains, case-insensitive); sorted by name],
-    [*GET*], [`/places/:id`], [No], [200], [404 if unknown],
-    [*POST*], [`/places`], [Bearer], [201], [`name` (max 200), `region` (max 100), `description?`, `latitude?` (-90..90), `longitude?` (-180..180), `type?`],
-    [*PUT*], [`/places/:id`], [Bearer], [200], [partial update with the same validation],
-    [*DELETE*], [`/places/:id`], [Bearer], [204], [cascades to its reviews, favourites and itinerary entries],
-    [*POST*], [`/places/:id/image-upload-url`], [Bearer], [201], [`contentType` (jpeg/png/webp); presigned S3 POST, `key`, `imageUrl`; 503 if S3 is not configured],
-    [*POST*], [`/places/:id/image`], [Bearer], [200], [`key` from the upload step; checks the object exists and saves `imageUrl`],
-  )
-]
+#table(
+  columns: (1fr, 1.2fr, 0.7fr, 0.8fr, 3.5fr),
+  inset: 5.5pt,
+  stroke: 0.5pt + rgb("#cbd5e0"),
+  table.header([*Method*], [*Path*], [*Auth*], [*Status*], [*Notes*]),
+  [*GET*], [`/health`], [No], [200], [API and database status],
+  [*POST*], [`/auth/register`], [No], [201], [`email`, `name`, `password` (min 8); 409 if email exists],
+  [*POST*], [`/auth/login`], [No], [200], [returns `token` and `user`; 401 on bad credentials],
+  [*GET*], [`/users/me`], [Bearer], [200], [own profile including email],
+  [*GET*], [`/users/:id`], [Bearer], [200], [`id`, `name`, `createdAt` only],
+  [*DELETE*], [`/users/me`], [Bearer], [204], [deletes own account and, via cascade, its reviews, favorites and itinerary],
+  [*GET*], [`/favorites`], [Bearer], [200], [own favorites with place],
+  [*POST*], [`/favorites`], [Bearer], [201], [`placeId`; 409 if already a favorite],
+  [*DELETE*], [`/favorites/:id`], [Bearer], [204], [own favorites only],
+  [*GET*], [`/itinerary`], [Bearer], [200], [own entries ordered by start date],
+  [*POST*], [`/itinerary`], [Bearer], [201], [`placeId`, `startDate`, `endDate`, `note?`; 400 if end before start],
+  [*PUT*], [`/itinerary/:id`], [Bearer], [200], [partial update],
+  [*DELETE*], [`/itinerary/:id`], [Bearer], [204], [own entries only],
+  [*GET*], [`/places/:id/reviews`], [No], [200], [reviews with author name],
+  [*GET*], [`/reviews/:id`], [No], [200], [],
+  [*POST*], [`/reviews`], [Bearer], [201], [`placeId`, `rating` (1-5), `comment?`],
+  [*PUT*], [`/reviews/:id`], [Bearer], [200], [own reviews only],
+  [*DELETE*], [`/reviews/:id`], [Bearer], [204], [own reviews only],
+  [*GET*], [`/places`], [No], [200], [optional `region` (exact, case-insensitive) and `q` (name contains, case-insensitive); sorted by name],
+  [*GET*], [`/places/:id`], [No], [200], [404 if unknown],
+  [*POST*], [`/places`], [Bearer], [201], [`name` (max 200), `region` (max 100), `description?`, `latitude?` (-90..90), `longitude?` (-180..180), `type?`],
+  [*PUT*], [`/places/:id`], [Bearer], [200], [partial update with the same validation],
+  [*DELETE*], [`/places/:id`], [Bearer], [204], [cascades to its reviews, favourites and itinerary entries],
+  [*POST*], [`/places/:id/image-upload-url`], [Bearer], [201], [`contentType` (jpeg/png/webp); presigned S3 POST, `key`, `imageUrl`; 503 if S3 is not configured],
+  [*POST*], [`/places/:id/image`], [Bearer], [200], [`key` from the upload step; checks the object exists and saves `imageUrl`],
+)
 
 == API Test and Smoke Test Evidence
 
@@ -950,7 +952,7 @@ OurTearoa is a working three-tier cloud application: an Angular client, an Expre
   inset: 5.5pt,
   stroke: 0.5pt + rgb("#cbd5e0"),
   table.header([*Option B requirement*], [*How OurTearoa meets it*]),
-  [Three tiers], [Angular SPA (client), Express 5 API (application), RDS PostgreSQL (data) (@sec-quality)],
+  [Three tiers], [Angular SPA (client), Express 5 API (application), RDS PostgreSQL & S3 blob storage (data) (@sec-quality)],
   [Client and API decoupled by REST], [The client only talks to `/api` over JSON; the API is usable without the client (@sec-api-overview)],
   [At least 10 REST services, at least 3 `POST`], [25 endpoints, 8 of them `POST`],
   [Cloud database, not installed on the VM], [AWS RDS for PostgreSQL 16 over verified TLS (@sec-db)],
