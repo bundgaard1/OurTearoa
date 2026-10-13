@@ -215,7 +215,7 @@ US-17 to US-20 in #link(<app-user-stories>)[Appendix B] cover evaluator access t
 = Project Management
 
 == Work Breakdown Structure 
-The work was broken down into six work packages and tracked as GitHub issues . Each issue was implemented on a feature branch and merged through a reviewed pull request.
+The work was broken down into six work packages and tracked as GitHub issues. Each issue was implemented on a feature branch and merged through a reviewed pull request.
 
 #figure(
   text(size: 9pt)[
@@ -268,7 +268,7 @@ The project started with one formal kick-off meeting. After that, the team coord
 *Kick-off meeting, 6 August 2026* (about 4 hours; agenda in issue \#1, minutes in issue \#2)
 - Agenda: define the project scope, determine roles, choose and challenge the tech stack, start the GitHub repository.
 - Decisions: a map-based travel web app; Angular with Leaflet and OpenStreetMap for the client; a TypeScript/Express API on a single EC2 instance; AWS RDS PostgreSQL and S3 for data and images; GitHub Actions for CI/CD.
-- Actions: Tim Schiller created the first work packages as issues ( scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added tasks for RDS security and IAM access and took over the RDS provisioning.
+- Actions: Tim Schiller created the first work packages as issues (scaffolding, RDS, EC2, public API, HTTPS, CI/CD, evidence); Mathias Jørgensen added tasks for RDS security and IAM access and took over the RDS provisioning.
 
 *Coordination log (from GitHub issues and pull requests)*
 
@@ -783,7 +783,7 @@ The account is on the AWS free tier. th
 
 == Accessing the Application
 
-Open `https://ourtearoa.duckdns.org` in a current desktop or mobile browser (for example Chrome, Firefox, Safari or Edge). No installation is needed. The site is served over HTTPS only; a request to `http://` is redirected to `https://`. The address bar shows a valid Let's Encrypt certificate .
+Open `https://ourtearoa.duckdns.org` in a current desktop or mobile browser (for example Chrome, Firefox, Safari or Edge). No installation is needed. The site is served over HTTPS only; a request to `http://` is redirected to `https://`. The address bar shows a valid Let's Encrypt certificate.
 
 Browsing places and reading reviews works without an account. Saving favourites, planning visits, writing reviews and uploading photos require a free account (Step 2). On screens of 768 px or less the place detail covers the full screen.
 

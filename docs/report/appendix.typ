@@ -28,7 +28,7 @@
     + "Implement this GitHub issue in the Angular client against the existing REST endpoints, including loading, empty and error states and unit tests."
     + "The deploy workflow fails at this step; here is the log. Find the cause and propose a fix."
     + "Review my changes for bugs and security issues before I open the pull request."
-    + "Write out a outline of the content of `DESIGN.md` into the report and check it against the current code and AWS setup."
+    + "Write out an outline of the content of `DESIGN.md` into the report and check it against the current code and AWS setup."
   ],
   table.cell(fill: rgb("#edf2f7"))[*Provide a summary or description of the AI-generated output. (Optional: attach output in an appendix.)*],
   [
